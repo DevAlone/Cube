@@ -4,8 +4,25 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public float horizontalSpeed;
+    public bool IsMovingHorizontally
+    {
+        get
+        {
+            return isMovingHorizontally;
+        }
+    }
+
     private GameController gameController;
     private Vector3 initPosition;
+    private bool isMovingHorizontally = false;
+    private Vector3 moveTarget;
+
+    public void Move(float stepSize)
+    {
+        moveTarget = transform.position + new Vector3(stepSize, 0, 0);
+        isMovingHorizontally = true;
+    }
 
     void Start()
     {
@@ -13,23 +30,38 @@ public class PlayerController : MonoBehaviour
         initPosition = transform.position;
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        /*transform.position = new Vector3(
+        if (isMovingHorizontally)
+        {
+            transform.position = Vector3.MoveTowards(
+                    transform.position,
+                    moveTarget,
+                    horizontalSpeed * Time.deltaTime
+                );
+            isMovingHorizontally = transform.position != moveTarget;
+        }
+
+        transform.position = new Vector3(
             transform.position.x,
-            initPosition.y,
+            transform.position.y,
             initPosition.z
-        );*/
+        );
+
+        if (transform.position.y < 0)
+        {
+            gameController.IsGameOver = true;
+        }
     }
 
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
         if (other.tag != "Hazard")
         {
             return;
         }
 
-        gameController.gameIsOver = true;
-        Destroy(gameObject);
+        gameController.IsGameOver = true;
+        gameObject.SetActive(false);
     }
 }
