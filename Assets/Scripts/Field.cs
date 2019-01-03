@@ -11,27 +11,38 @@ public class Field : MonoBehaviour
     public float verticalAcceleration;
     public float maximumVerticalSpeed;
     public float hazardProbability;
-    public float holeInTheGroundProbability;
+    public float hazardProbabilityIncrementer;
+    public float maximumHazardProbability;
+    public float hazardInTheGroundProbability;
+    public float hazardInTheGroundProbabilityIncrementer;
+    public float maximumHazardInTheGroundProbability;
     public GameObject[] groundObjectPrefabs;
-    // public GameObject invisibleGroundObjectPrefab;
+    public GameObject[] groundHazardObjectPrefabs;
     public GameObject[] hazardObjectPrefabs;
     public delegate void OnRowCreatedDelegate();
     public OnRowCreatedDelegate onRowCreated;
     public GameObject player;
 
-    private GameObject[,] groundGameObjectsMap;
-    private GameObject[,] hazardGameObjectsMap;
-    public int fieldStartRow = 0;
+    private CircularBuffer<GameObject[]> groundGameObjectsMap;
+    private CircularBuffer<GameObject[]> hazardGameObjectsMap;
+    private Vector2Int playerPositionInMap;
 
     public void Move()
-    {
-        for (int z = 0; z < height; ++z)
+    { 
+        int len = height;
+
+        for (int z = 0; z < len; ++z)
         {
+            playerPositionInMap = new Vector2Int(
+                (int)((player.transform.position.x + stepSize / 2) / stepSize + width / 2),
+                (int)(player.transform.position.z / stepSize)
+            );
+
             bool wasRowDeleted = false;
             for (int x = 0; x < width; ++x)
             {
-                var groundGameObject = groundGameObjectsMap[z, x];
-                var hazardGameObject = hazardGameObjectsMap[z, x];
+                var groundGameObject = groundGameObjectsMap[z][x];
+                var hazardGameObject = hazardGameObjectsMap[z][x];
 
                 if (groundGameObject != null)
                 {
@@ -46,21 +57,22 @@ public class Field : MonoBehaviour
                 {
                     wasRowDeleted = true;
                     Destroy(groundGameObject);
-                    groundGameObjectsMap[z, x] = null;
+                    groundGameObjectsMap[z][x] = null;
                     if (hazardGameObject != null)
                     {
                         Destroy(hazardGameObject);
-                        hazardGameObjectsMap[z, x] = null;
+                        hazardGameObjectsMap[z][x] = null;
                     }
                 }
             }
 
             if (wasRowDeleted)
             {
-                fieldStartRow = Mod(fieldStartRow + 1, height);
-                var lastRowIndex = Mod(z - 1, height);
+                groundGameObjectsMap.Rotate(1);
+                hazardGameObjectsMap.Rotate(1);
+
                 CreateRow(
-                    z,
+                    height - 1,
                     new Vector3(-(width / 2) * stepSize, 0, (height - 1) * stepSize) -
                     new Vector3(0, 0, verticalSpeed * Time.deltaTime)
                 );
@@ -70,8 +82,14 @@ public class Field : MonoBehaviour
 
     void Start()
     {
-        groundGameObjectsMap = new GameObject[height, width];
-        hazardGameObjectsMap = new GameObject[height, width];
+        groundGameObjectsMap = new CircularBuffer<GameObject[]>(height);
+        hazardGameObjectsMap = new CircularBuffer<GameObject[]>(height);
+
+        for (int z = 0; z < height; ++z)
+        {
+            groundGameObjectsMap[z] = new GameObject[width];
+            hazardGameObjectsMap[z] = new GameObject[width];
+        }
 
         for (int z = 0; z < height; ++z)
         {
@@ -85,6 +103,16 @@ public class Field : MonoBehaviour
             {
                 verticalSpeed = maximumVerticalSpeed;
             }
+            hazardProbability += hazardProbabilityIncrementer;
+            if (hazardProbability > maximumHazardProbability)
+            {
+                hazardProbability = maximumHazardProbability;
+            }
+            hazardInTheGroundProbability += hazardInTheGroundProbabilityIncrementer;
+            if (hazardInTheGroundProbability > maximumHazardInTheGroundProbability)
+            {
+                hazardInTheGroundProbability = maximumHazardInTheGroundProbability;
+            }
         };
     }
 
@@ -95,8 +123,7 @@ public class Field : MonoBehaviour
 
     void CreateRow(int rowNumber, Vector3 shiftPosition, bool spawnHazards = true)
     {
-        // TODO: detect player's position
-        var paths = FindPathsToRow(rowNumber, new Vector2Int(0, fieldStartRow + 1), new HashSet<Vector2Int>());
+        var paths = FindPathsToRow(rowNumber, playerPositionInMap, new HashSet<Vector2Int>());
 
         /*foreach (var item in paths)
         {
@@ -120,7 +147,11 @@ public class Field : MonoBehaviour
                 transform.rotation
             );
             groundObj.transform.parent = transform;
-            groundGameObjectsMap[rowNumber, skipIndex] = groundObj;
+            groundGameObjectsMap[rowNumber][skipIndex] = groundObj;
+        }
+        else
+        {
+            Debug.Log("Unable to find path");
         }
 
         for (int i = 0; i < width; ++i)
@@ -137,10 +168,9 @@ public class Field : MonoBehaviour
             );
 
             var prefab = groundObjectPrefabs[Random.Range(0, groundObjectPrefabs.Length)];
-            if (spawnHazards && Random.value < holeInTheGroundProbability)
+            if (spawnHazards && groundHazardObjectPrefabs.Length > 0 && Random.value < hazardInTheGroundProbability)
             {
-                // prefab = invisibleGroundObjectPrefab;
-                continue;
+                prefab = groundHazardObjectPrefabs[Random.Range(0, groundHazardObjectPrefabs.Length)];
             }
 
             var groundObj = Instantiate(
@@ -149,7 +179,7 @@ public class Field : MonoBehaviour
                 transform.rotation
             );
             groundObj.transform.parent = transform;
-            groundGameObjectsMap[rowNumber, i] = groundObj;
+            groundGameObjectsMap[rowNumber][i] = groundObj;
 
             if (spawnHazards && Random.value < hazardProbability)
             {
@@ -160,7 +190,7 @@ public class Field : MonoBehaviour
                     groundObj.transform.rotation
                 );
                 hazard.transform.parent = transform;
-                hazardGameObjectsMap[rowNumber, i] = hazard;
+                hazardGameObjectsMap[rowNumber][i] = hazard;
             }
         }
 
@@ -169,7 +199,7 @@ public class Field : MonoBehaviour
 
     List<int> FindPathsToRow(int rowIndex, Vector2Int playerPosition, HashSet<Vector2Int> visitedIndices)
     {
-        playerPosition.y = Mod(playerPosition.y, height);
+        // playerPosition.y = Mod(playerPosition.y, height);
 
         if (visitedIndices.Contains(playerPosition))
         {
@@ -189,8 +219,14 @@ public class Field : MonoBehaviour
             };
         }
 
-        if (groundGameObjectsMap[playerPosition.y, playerPosition.x] == null) 
-            // || hazardGameObjectsMap[playerPosition.y, playerPosition.x] != null)
+        // skip holes
+        if (groundGameObjectsMap[playerPosition.y][playerPosition.x] == null || 
+            hazardGameObjectsMap[playerPosition.y][playerPosition.x] != null)
+        {
+            return new List<int>();
+        }
+        // skip hazards
+        if (groundGameObjectsMap[playerPosition.y][playerPosition.x].tag == "Hazard")
         {
             return new List<int>();
         }
@@ -203,10 +239,5 @@ public class Field : MonoBehaviour
         // result.AddRange(FindPathsToRow(rowIndex, new Vector2Int(playerPosition.x, playerPosition.y - 1)));
 
         return result;
-    }
-
-    int Mod(int x, int m)
-    {
-        return (x % m + m) % m;
     }
 }
