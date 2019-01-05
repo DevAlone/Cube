@@ -11,8 +11,14 @@ public enum InputAction
 
 public class InputQueue : MonoBehaviour
 {
+    public delegate void OnActionAdded(InputAction action);
+    public delegate void OnActionRemoved(InputAction action);
+    public OnActionAdded onActionAdded;
+    public OnActionRemoved onActionRemoved;
+
     private Queue<InputAction> inputQueue;
     private Dictionary<KeyCode, InputAction> keyInputActionMap;
+    private Dictionary<InputAction, InputAction> oppositeActionsMap;
 
     public bool IsEmpty()
     {
@@ -21,6 +27,7 @@ public class InputQueue : MonoBehaviour
 
     public InputAction Dequeue()
     {
+        onActionAdded?.Invoke(inputQueue.Peek());
         return inputQueue.Dequeue();
     }
 
@@ -38,6 +45,11 @@ public class InputQueue : MonoBehaviour
             { KeyCode.RightArrow, InputAction.MoveRight },
             { KeyCode.UpArrow, InputAction.SkipStep },
         };
+        oppositeActionsMap = new Dictionary<InputAction, InputAction>
+        {
+            { InputAction.MoveLeft, InputAction.MoveRight },
+            { InputAction.MoveRight, InputAction.MoveLeft },
+        };
     }
 
     void Update()
@@ -46,8 +58,30 @@ public class InputQueue : MonoBehaviour
         {
             if (Input.GetKeyDown(pair.Key))
             {
+                if (inputQueue.Count > 0)
+                {
+                    var lastAction = inputQueue.Peek();
+                    if (AreActionsOpposite(lastAction, pair.Value))
+                    {
+                        onActionRemoved(inputQueue.Dequeue());
+                        continue;
+                    }
+                }
+
                 inputQueue.Enqueue(pair.Value);
+                onActionAdded?.Invoke(pair.Value);
             }
         }
+    }
+
+    bool AreActionsOpposite(InputAction action1, InputAction action2)
+    {
+        InputAction oppositeToAction1;
+        if (oppositeActionsMap.TryGetValue(action1, out oppositeToAction1))
+        {
+            return oppositeToAction1 == action2;
+        }
+
+        return false;
     }
 }

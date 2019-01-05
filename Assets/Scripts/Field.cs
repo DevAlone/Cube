@@ -22,59 +22,59 @@ public class Field : MonoBehaviour
     public delegate void OnRowCreatedDelegate();
     public OnRowCreatedDelegate onRowCreated;
     public GameObject player;
+    public InputQueue inputQueue;
+    public Material targetCellMaterial;
 
-    private CircularBuffer<GameObject[]> groundGameObjectsMap;
-    private CircularBuffer<GameObject[]> hazardGameObjectsMap;
+    private CircularBuffer<GameObject[]>[] objectsMap;
     private Vector2Int playerPositionInMap;
+    private Vector2Int currentTargetPosition;
+    private const int numberOfLayers = 2;
+    private PlayerController playerController;
 
-    public void Move()
-    { 
+    public void Move(float deltaTime)
+    {
         int len = height;
 
         for (int z = 0; z < len; ++z)
         {
-            playerPositionInMap = new Vector2Int(
-                (int)((player.transform.position.x + stepSize / 2) / stepSize + width / 2),
-                (int)(player.transform.position.z / stepSize)
-            );
-
             bool wasRowDeleted = false;
-            for (int x = 0; x < width; ++x)
+            float deletedObjZPosition = 0;
+
+            for (int layer = 0; layer < numberOfLayers; ++layer)
             {
-                var groundGameObject = groundGameObjectsMap[z][x];
-                var hazardGameObject = hazardGameObjectsMap[z][x];
 
-                if (groundGameObject != null)
+                for (int x = 0; x < width; ++x)
                 {
-                    groundGameObject.transform.position += -new Vector3(0, 0, verticalSpeed * Time.deltaTime);
-                }
-                if (hazardGameObject != null)
-                {
-                    hazardGameObject.transform.position += -new Vector3(0, 0, verticalSpeed * Time.deltaTime);
-                }
+                    var obj = objectsMap[layer][z][x];
 
-                if (groundGameObject != null && groundGameObject.transform.position.z <= 0)
-                {
-                    wasRowDeleted = true;
-                    Destroy(groundGameObject);
-                    groundGameObjectsMap[z][x] = null;
-                    if (hazardGameObject != null)
+                    if (obj != null)
                     {
-                        Destroy(hazardGameObject);
-                        hazardGameObjectsMap[z][x] = null;
+                        obj.transform.position -= new Vector3(0, 0, verticalSpeed * deltaTime);
+                        if (obj.transform.position.z <= 0)
+                        {
+                            deletedObjZPosition = obj.transform.position.z;
+                            wasRowDeleted = true;
+                            Destroy(obj);
+                            objectsMap[layer][z][x] = null;
+                        }
                     }
                 }
             }
 
             if (wasRowDeleted)
             {
-                groundGameObjectsMap.Rotate(1);
-                hazardGameObjectsMap.Rotate(1);
+                for (int layer = 0; layer < numberOfLayers; ++layer)
+                {
+                    objectsMap[layer].Rotate(1);
+                }
+                --len;
+                --z;
+
 
                 CreateRow(
                     height - 1,
-                    new Vector3(-(width / 2) * stepSize, 0, (height - 1) * stepSize) -
-                    new Vector3(0, 0, verticalSpeed * Time.deltaTime)
+                    new Vector3(-(width / 2) * stepSize, 0.0f, deletedObjZPosition + (height - 1) * stepSize) // -
+                                                                                                              // new Vector3(0, 0, verticalSpeed * deltaTime)
                 );
             }
         }
@@ -82,19 +82,26 @@ public class Field : MonoBehaviour
 
     void Start()
     {
-        groundGameObjectsMap = new CircularBuffer<GameObject[]>(height);
-        hazardGameObjectsMap = new CircularBuffer<GameObject[]>(height);
-
-        for (int z = 0; z < height; ++z)
+        objectsMap = new CircularBuffer<GameObject[]>[2];
+        for (int layer = 0; layer < 2; ++layer)
         {
-            groundGameObjectsMap[z] = new GameObject[width];
-            hazardGameObjectsMap[z] = new GameObject[width];
+            objectsMap[layer] = new CircularBuffer<GameObject[]>(height);
         }
 
         for (int z = 0; z < height; ++z)
         {
-            CreateRow(z, new Vector3(-width / 2, 0, z * stepSize), false);
+            for (int layer = 0; layer < 2; ++layer)
+            {
+                objectsMap[layer][z] = new GameObject[width];
+            }
         }
+
+        for (int z = 0; z < height; ++z)
+        {
+            CreateRow(z, new Vector3(-(width / 2) * stepSize, 0, z * stepSize), false);
+        }
+
+        playerController = player.GetComponent<ActualObjectHolder>().actualObject.GetComponent<PlayerController>();
 
         onRowCreated += () =>
         {
@@ -113,23 +120,133 @@ public class Field : MonoBehaviour
             {
                 hazardInTheGroundProbability = maximumHazardInTheGroundProbability;
             }
+            currentTargetPosition.y -= 1;
+            if (currentTargetPosition.y < playerPositionInMap.y)
+            {
+                currentTargetPosition.y = playerPositionInMap.y;
+            }
+
+            UpdatePlayerPosition(Vector2Int.zero);
+        };
+
+        playerController.onStartedMovingHorizontally += (float direction) =>
+        {
+            UpdatePlayerPosition(new Vector2Int((int)direction, 0));
+        };
+
+        inputQueue.onActionAdded += (InputAction action) =>
+        {
+            /*
+            MoveCurrentTargetPosition(action, true);
+            try
+            {
+                var groundObject = groundGameObjectsMap[currentTargetPosition.y][currentTargetPosition.x];
+                if (groundObject != null)
+                {
+                    groundObject.GetComponent<ActualObjectHolder>().actualObject.GetComponent<MeshRenderer>().material = targetCellMaterial;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Log(ex);
+                Debug.Log(currentTargetPosition);
+            }
+*/
+        };
+
+        inputQueue.onActionRemoved += (InputAction action) =>
+        {
+            // MoveCurrentTargetPosition(action, false);
         };
     }
 
+    void MoveCurrentTargetPosition(InputAction action, bool wasAdded)
+    {
+        /*
+        if (currentTargetPosition == null)
+        {
+            currentTargetPosition = playerPositionInMap;
+        }
+
+        switch (action)
+        {
+            case InputAction.MoveLeft:
+                currentTargetPosition = new Vector2Int(currentTargetPosition.x + (wasAdded ? 1 : -1), currentTargetPosition.y);
+                break;
+            case InputAction.MoveRight:
+                currentTargetPosition = new Vector2Int(currentTargetPosition.x - (wasAdded ? 1 : -1), currentTargetPosition.y);
+                break;
+            case InputAction.SkipStep:
+                currentTargetPosition = new Vector2Int(currentTargetPosition.x, currentTargetPosition.y + (wasAdded ? 1 : -1));
+                break;
+            default:
+                throw new System.Exception();
+        }
+        */
+    }
+
+    void UpdatePlayerPosition(Vector2Int direction)
+    {
+        // TODO: fix position detection!
+
+        // field is moving, so we need to keep player's position fresh
+        playerPositionInMap = new Vector2Int(
+            (int)((player.transform.position.x + stepSize / 2) / stepSize + width / 2),
+            (int)((player.transform.position.z - stepSize / 2) / stepSize)
+        );
+        if (playerPositionInMap.x < 0)
+        {
+            playerPositionInMap.x = 0;
+        }
+        if (playerPositionInMap.x >= width)
+        {
+            playerPositionInMap.x = width - 1;
+        }
+
+        if (playerPositionInMap.y < 0)
+        {
+            playerPositionInMap.y = 0;
+        }
+        if (playerPositionInMap.y >= height)
+        {
+            playerPositionInMap.y = height - 1;
+        }
+
+        MarkCellAsTarget(playerPositionInMap);
+        MarkCellAsTarget(playerPositionInMap + new Vector2Int(
+            direction.x == 0 ? 0 : direction.x > 0 ? 1 : -1,
+            direction.y == 0 ? 0 : direction.y > 0 ? 1 : -1
+        ));
+    }
+
+    void MarkCellAsTarget(Vector2Int position)
+    {
+        if (position.x < 0 || position.x >= width || 
+            position.y < 0 || position.y >= height)
+        {
+            return;
+        }
+
+        var groundObj = objectsMap[0][position.y][position.x];
+
+        if (groundObj != null)
+        {
+            groundObj.
+                GetComponent<ActualObjectHolder>().
+                actualObject.
+                GetComponent<MeshRenderer>().
+                material = targetCellMaterial;
+        }
+    }
+
+
     void Update()
     {
-
     }
 
     void CreateRow(int rowNumber, Vector3 shiftPosition, bool spawnHazards = true)
     {
         var paths = FindPathsToRow(rowNumber, playerPositionInMap, new HashSet<Vector2Int>());
-
-        /*foreach (var item in paths)
-        {
-            Debug.Log(item);
-        }
-        Debug.Log("end");*/
 
         var skipIndex = paths.Count > 0 ? paths[Random.Range(0, paths.Count)] : -1;
 
@@ -147,7 +264,11 @@ public class Field : MonoBehaviour
                 transform.rotation
             );
             groundObj.transform.parent = transform;
-            groundGameObjectsMap[rowNumber][skipIndex] = groundObj;
+            if (objectsMap[0][rowNumber][skipIndex] != null)
+            {
+                throw new System.Exception("trying to override an existing object");
+            }
+            objectsMap[0][rowNumber][skipIndex] = groundObj;
         }
         else
         {
@@ -179,7 +300,11 @@ public class Field : MonoBehaviour
                 transform.rotation
             );
             groundObj.transform.parent = transform;
-            groundGameObjectsMap[rowNumber][i] = groundObj;
+            if (objectsMap[0][rowNumber][i] != null)
+            {
+                throw new System.Exception("trying to override an existing object");
+            }
+            objectsMap[0][rowNumber][i] = groundObj;
 
             if (spawnHazards && Random.value < hazardProbability)
             {
@@ -190,7 +315,11 @@ public class Field : MonoBehaviour
                     groundObj.transform.rotation
                 );
                 hazard.transform.parent = transform;
-                hazardGameObjectsMap[rowNumber][i] = hazard;
+                if (objectsMap[1][rowNumber][i] != null)
+                {
+                    throw new System.Exception("trying to override an existing object");
+                }
+                objectsMap[1][rowNumber][i] = hazard;
             }
         }
 
@@ -199,8 +328,6 @@ public class Field : MonoBehaviour
 
     List<int> FindPathsToRow(int rowIndex, Vector2Int playerPosition, HashSet<Vector2Int> visitedIndices)
     {
-        // playerPosition.y = Mod(playerPosition.y, height);
-
         if (visitedIndices.Contains(playerPosition))
         {
             return new List<int>();
@@ -219,14 +346,21 @@ public class Field : MonoBehaviour
             };
         }
 
-        // skip holes
-        if (groundGameObjectsMap[playerPosition.y][playerPosition.x] == null || 
-            hazardGameObjectsMap[playerPosition.y][playerPosition.x] != null)
+        // skip holes in the ground
+        if (objectsMap[0][playerPosition.y][playerPosition.x] == null)
         {
             return new List<int>();
         }
-        // skip hazards
-        if (groundGameObjectsMap[playerPosition.y][playerPosition.x].tag == "Hazard")
+
+        // skip hazards in the ground
+        if (objectsMap[0][playerPosition.y][playerPosition.x].tag == "Hazard")
+        {
+            return new List<int>();
+        }
+
+        // skip hazards above the ground
+        if (objectsMap[1][playerPosition.y][playerPosition.x] != null &&
+            objectsMap[1][playerPosition.y][playerPosition.x].tag == "Hazard")
         {
             return new List<int>();
         }
@@ -236,7 +370,6 @@ public class Field : MonoBehaviour
         result.AddRange(FindPathsToRow(rowIndex, new Vector2Int(playerPosition.x - 1, playerPosition.y), visitedIndices));
         result.AddRange(FindPathsToRow(rowIndex, new Vector2Int(playerPosition.x + 1, playerPosition.y), visitedIndices));
         result.AddRange(FindPathsToRow(rowIndex, new Vector2Int(playerPosition.x, playerPosition.y + 1), visitedIndices));
-        // result.AddRange(FindPathsToRow(rowIndex, new Vector2Int(playerPosition.x, playerPosition.y - 1)));
 
         return result;
     }

@@ -6,6 +6,10 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
+    public Text scoreValueWidget;
+    public Text endTextWidget;
+    public int scorePerRow;
+    public int scorePerHorizontalMove;
     public GameObject playerObject;
     public InputQueue inputQueue;
     public bool IsGameOver
@@ -14,13 +18,34 @@ public class GameController : MonoBehaviour
         set
         {
             isGameOver = value;
+            if (isGameOver)
+            {
+                endTextWidget.text = endTextWidget.text.Replace("$score", score.ToString());
+            }
             endGameUI.SetActive(isGameOver);
         }
     }
+
+    public int Score
+    {
+        get => score;
+        set
+        {
+            if (IsGameOver)
+            {
+                return;
+            }
+
+            score = value;
+            scoreValueWidget.text = score.ToString();
+        }
+    }
+
     public Field field;
     public GameObject endGameUI;
 
 
+    private int score = 0;
     private bool isProcessingInputQueue = false;
     private Vector3 playerTarget;
     private PlayerController playerController;
@@ -35,7 +60,14 @@ public class GameController : MonoBehaviour
             {
                 isProcessingInputQueue = true;
             }
+            Score += scorePerRow;
         };
+    }
+
+    void MovePlayer(float shift)
+    {
+        playerController.Move(shift);
+        Score += scorePerHorizontalMove;
     }
 
     void Update()
@@ -59,10 +91,10 @@ public class GameController : MonoBehaviour
                     switch (inputQueue.Dequeue())
                     {
                         case InputAction.MoveLeft:
-                            playerController.Move(-field.stepSize);
+                            MovePlayer(-field.stepSize);
                             break;
                         case InputAction.MoveRight:
-                            playerController.Move(field.stepSize);
+                            MovePlayer(field.stepSize);
                             break;
                         default:
                             // skip current step
@@ -74,7 +106,7 @@ public class GameController : MonoBehaviour
         }
         else
         {
-            field.Move();
+            field.Move(Time.deltaTime);
         }
     }
 }
