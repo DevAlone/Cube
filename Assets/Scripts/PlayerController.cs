@@ -51,7 +51,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isMovingHorizontally)
         {
-            animator.speed = horizontalSpeed * horizontalRotationCoefficient;
+            animator.speed = horizontalSpeed * horizontalRotationCoefficient * gameController.gameSpeedModifier;
             float direction = Mathf.Sign(moveTarget.x - parentTransform.position.x);
             if (direction > 0)
             {
@@ -65,21 +65,16 @@ public class PlayerController : MonoBehaviour
             parentTransform.position = Vector3.MoveTowards(
                     parentTransform.position,
                     moveTarget,
-                    horizontalSpeed * Time.deltaTime
+                    horizontalSpeed * Time.deltaTime * gameController.gameSpeedModifier
                 );
             isMovingHorizontally = parentTransform.position != moveTarget;
-        } else
+        }
+        else
         {
             animator.Play("PlayerVerticalRotation");
 
-            animator.speed = field.verticalSpeed * verticalRotationCoefficient;
+            animator.speed = field.verticalSpeed * verticalRotationCoefficient * gameController.gameSpeedModifier;
         }
-
-        /*parentTransform.position = new Vector3(
-            parentTransform.position.x,
-            parentTransform.position.y,
-            initPosition.z
-        );*/
 
         if (parentTransform.position.y < groundLevelObject.transform.position.y)
         {

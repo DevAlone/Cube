@@ -41,6 +41,8 @@ public class GameController : MonoBehaviour
         }
     }
 
+    public float gameSpeedModifier = 1;
+    public float defaultGameSpeedModifier = 1;
     public Field field;
     public GameObject endGameUI;
 
@@ -50,6 +52,16 @@ public class GameController : MonoBehaviour
     private Vector3 playerTarget;
     private PlayerController playerController;
     private bool isGameOver = false;
+
+    public static GameController GetCurrent()
+    {
+        return GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
+    }
+
+    public void ResetGameSpeedModifier()
+    {
+        gameSpeedModifier = defaultGameSpeedModifier;
+    }
 
     void Start()
     {
@@ -91,10 +103,10 @@ public class GameController : MonoBehaviour
                     switch (inputQueue.Dequeue())
                     {
                         case InputAction.MoveLeft:
-                            MovePlayer(-field.stepSize);
+                            MovePlayer(-field.cellSize);
                             break;
                         case InputAction.MoveRight:
-                            MovePlayer(field.stepSize);
+                            MovePlayer(field.cellSize);
                             break;
                         default:
                             // skip current step

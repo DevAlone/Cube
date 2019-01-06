@@ -896,6 +896,8 @@ MonoBehaviour:
   scorePerHorizontalMove: 1
   playerObject: {fileID: 517135620}
   inputQueue: {fileID: 388180237}
+  gameSpeedModifier: 1
+  defaultGameSpeedModifier: 1
   field: {fileID: 1809376913}
   endGameUI: {fileID: 789052888}
 --- !u!1 &789052888
@@ -1122,10 +1124,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 5
   height: 20
-  stepSize: 1
-  verticalSpeed: 5
-  verticalAcceleration: 0.02
-  maximumVerticalSpeed: 50
+  cellSize: 1
+  verticalSpeed: 2
+  verticalAcceleration: 0.015
+  maximumVerticalSpeed: 40
   hazardProbability: 0.1
   hazardProbabilityIncrementer: 0.0001
   maximumHazardProbability: 0.4
@@ -1141,6 +1143,10 @@ MonoBehaviour:
   player: {fileID: 1818733845}
   inputQueue: {fileID: 388180237}
   targetCellMaterial: {fileID: 2100000, guid: 7cd7c684a0042cf4fb0f83c08ef7a8b3, type: 2}
+  bonuses:
+  - prefab: {fileID: 2450038381516576170, guid: fd05347ccd68c02419302cfd7274ab09,
+      type: 3}
+    probability: 0.1
 --- !u!1 &1818733845
 GameObject:
   m_ObjectHideFlags: 0

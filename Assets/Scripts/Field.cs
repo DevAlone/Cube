@@ -2,10 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class BonusEntry
+{
+    public GameObject prefab;
+    public float probability;
+}
+
 public class Field : MonoBehaviour
 {
+    // number of cells in the field
     public int width, height;
-    public float stepSize;
+    public float cellSize;
     public float verticalSpeed;
     // per row
     public float verticalAcceleration;
@@ -24,12 +32,14 @@ public class Field : MonoBehaviour
     public GameObject player;
     public InputQueue inputQueue;
     public Material targetCellMaterial;
+    public BonusEntry[] bonuses;
 
     private CircularBuffer<GameObject[]>[] objectsMap;
     private Vector2Int playerPositionInMap;
     private Vector2Int currentTargetPosition;
     private const int numberOfLayers = 2;
     private PlayerController playerController;
+    private GameController gameController;
 
     public void Move(float deltaTime)
     {
@@ -49,7 +59,7 @@ public class Field : MonoBehaviour
 
                     if (obj != null)
                     {
-                        obj.transform.position -= new Vector3(0, 0, verticalSpeed * deltaTime);
+                        obj.transform.position -= new Vector3(0, 0, verticalSpeed * deltaTime * gameController.gameSpeedModifier);
                         if (obj.transform.position.z <= 0)
                         {
                             deletedObjZPosition = obj.transform.position.z;
@@ -73,8 +83,7 @@ public class Field : MonoBehaviour
 
                 CreateRow(
                     height - 1,
-                    new Vector3(-(width / 2) * stepSize, 0.0f, deletedObjZPosition + (height - 1) * stepSize) // -
-                                                                                                              // new Vector3(0, 0, verticalSpeed * deltaTime)
+                    new Vector3(-(width / 2) * cellSize, 0.0f, deletedObjZPosition + (height - 1) * cellSize)
                 );
             }
         }
@@ -82,6 +91,8 @@ public class Field : MonoBehaviour
 
     void Start()
     {
+        gameController = GameController.GetCurrent();
+
         objectsMap = new CircularBuffer<GameObject[]>[2];
         for (int layer = 0; layer < 2; ++layer)
         {
@@ -98,7 +109,7 @@ public class Field : MonoBehaviour
 
         for (int z = 0; z < height; ++z)
         {
-            CreateRow(z, new Vector3(-(width / 2) * stepSize, 0, z * stepSize), false);
+            CreateRow(z, new Vector3(-(width / 2) * cellSize, 0, z * cellSize), false);
         }
 
         playerController = player.GetComponent<ActualObjectHolder>().actualObject.GetComponent<PlayerController>();
@@ -191,8 +202,8 @@ public class Field : MonoBehaviour
 
         // field is moving, so we need to keep player's position fresh
         playerPositionInMap = new Vector2Int(
-            (int)((player.transform.position.x + stepSize / 2) / stepSize + width / 2),
-            (int)((player.transform.position.z - stepSize / 2) / stepSize)
+            (int)((player.transform.position.x + cellSize / 2) / cellSize + width / 2),
+            (int)((player.transform.position.z - cellSize / 2) / cellSize)
         );
         if (playerPositionInMap.x < 0)
         {
@@ -221,7 +232,7 @@ public class Field : MonoBehaviour
 
     void MarkCellAsTarget(Vector2Int position)
     {
-        if (position.x < 0 || position.x >= width || 
+        if (position.x < 0 || position.x >= width ||
             position.y < 0 || position.y >= height)
         {
             return;
@@ -253,7 +264,7 @@ public class Field : MonoBehaviour
         if (skipIndex >= 0)
         {
             var position = shiftPosition + new Vector3(
-                skipIndex * stepSize,
+                skipIndex * cellSize,
                 0,
                 0
             );
@@ -283,7 +294,7 @@ public class Field : MonoBehaviour
             }
 
             var position = shiftPosition + new Vector3(
-                i * stepSize,
+                i * cellSize,
                 0,
                 0
             );
@@ -320,6 +331,29 @@ public class Field : MonoBehaviour
                     throw new System.Exception("trying to override an existing object");
                 }
                 objectsMap[1][rowNumber][i] = hazard;
+            }
+            else
+            {
+                // try to spawn a bonus
+                if (bonuses.Length> 0)
+                {
+                    var randomBonusEntry = bonuses[Random.Range(0, bonuses.Length)];
+                    if (Random.value < randomBonusEntry.probability)
+                    {
+                        var bonus = Instantiate(
+                            randomBonusEntry.prefab,
+                            groundObj.transform.position + new Vector3(0, groundObj.transform.localScale.y, 0),
+                            groundObj.transform.rotation
+                        );
+                        bonus.transform.parent = transform;
+                        if (objectsMap[1][rowNumber][i] != null)
+                        {
+                            throw new System.Exception("trying to override an existing object");
+                        }
+                        objectsMap[1][rowNumber][i] = bonus;
+
+                    }
+                }
             }
         }
 
