@@ -16,7 +16,7 @@ public class InputQueue : MonoBehaviour
     public OnActionAdded onActionAdded;
     public OnActionRemoved onActionRemoved;
 
-    private Queue<InputAction> inputQueue;
+    private LinkedList<InputAction> inputQueue;
     private Dictionary<KeyCode, InputAction> keyInputActionMap;
     private Dictionary<InputAction, InputAction> oppositeActionsMap;
 
@@ -27,18 +27,20 @@ public class InputQueue : MonoBehaviour
 
     public InputAction Dequeue()
     {
-        onActionAdded?.Invoke(inputQueue.Peek());
-        return inputQueue.Dequeue();
+        var item = inputQueue.First.Value;
+        onActionAdded?.Invoke(item);
+        inputQueue.RemoveFirst();
+        return item;
     }
 
     public InputAction Peek()
     {
-        return inputQueue.Peek();
+        return inputQueue.First.Value;
     }
 
     void Start()
     {
-        inputQueue = new Queue<InputAction>();
+        inputQueue = new LinkedList<InputAction>();
         keyInputActionMap = new Dictionary<KeyCode, InputAction>
         {
             { KeyCode.LeftArrow, InputAction.MoveLeft },
@@ -54,21 +56,28 @@ public class InputQueue : MonoBehaviour
 
     void Update()
     {
+        foreach (var item in inputQueue)
+        {
+            Debug.Log(item);
+        }
+        Debug.Log("\n\n");
+
         foreach (var pair in keyInputActionMap)
         {
             if (Input.GetKeyDown(pair.Key))
             {
                 if (inputQueue.Count > 0)
                 {
-                    var lastAction = inputQueue.Peek();
+                    var lastAction = inputQueue.Last.Value;
                     if (AreActionsOpposite(lastAction, pair.Value))
                     {
-                        onActionRemoved(inputQueue.Dequeue());
+                        onActionRemoved(lastAction);
+                        inputQueue.RemoveLast();
                         continue;
                     }
                 }
 
-                inputQueue.Enqueue(pair.Value);
+                inputQueue.AddLast(pair.Value);
                 onActionAdded?.Invoke(pair.Value);
             }
         }

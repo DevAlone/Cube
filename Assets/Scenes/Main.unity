@@ -1125,7 +1125,7 @@ MonoBehaviour:
   width: 5
   height: 20
   cellSize: 1
-  verticalSpeed: 2
+  verticalSpeed: 0.5
   verticalAcceleration: 0.015
   maximumVerticalSpeed: 40
   hazardProbability: 0.1
@@ -1143,10 +1143,13 @@ MonoBehaviour:
   player: {fileID: 1818733845}
   inputQueue: {fileID: 388180237}
   targetCellMaterial: {fileID: 2100000, guid: 7cd7c684a0042cf4fb0f83c08ef7a8b3, type: 2}
+  cellMaterial: {fileID: 2100000, guid: 0146f05f256de7c44a3df8ca434ba798, type: 2}
   bonuses:
   - prefab: {fileID: 2450038381516576170, guid: fd05347ccd68c02419302cfd7274ab09,
       type: 3}
     probability: 0.1
+  playerPositionInMap: {x: 0, y: 0}
+  currentTargetPosition: {x: 0, y: 0}
 --- !u!1 &1818733845
 GameObject:
   m_ObjectHideFlags: 0

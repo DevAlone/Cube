@@ -32,11 +32,12 @@ public class Field : MonoBehaviour
     public GameObject player;
     public InputQueue inputQueue;
     public Material targetCellMaterial;
+    public Material cellMaterial;
     public BonusEntry[] bonuses;
 
     private CircularBuffer<GameObject[]>[] objectsMap;
-    private Vector2Int playerPositionInMap;
-    private Vector2Int currentTargetPosition;
+    public Vector2Int playerPositionInMap;
+    public Vector2Int currentTargetPosition;
     private const int numberOfLayers = 2;
     private PlayerController playerController;
     private GameController gameController;
@@ -114,6 +115,9 @@ public class Field : MonoBehaviour
 
         playerController = player.GetComponent<ActualObjectHolder>().actualObject.GetComponent<PlayerController>();
 
+        UpdatePlayerPosition();
+        currentTargetPosition = playerPositionInMap;
+
         onRowCreated += () =>
         {
             verticalSpeed += verticalAcceleration;
@@ -131,22 +135,51 @@ public class Field : MonoBehaviour
             {
                 hazardInTheGroundProbability = maximumHazardInTheGroundProbability;
             }
+
+            UpdatePlayerPosition();
             currentTargetPosition.y -= 1;
             if (currentTargetPosition.y < playerPositionInMap.y)
             {
                 currentTargetPosition.y = playerPositionInMap.y;
             }
-
-            UpdatePlayerPosition(Vector2Int.zero);
         };
 
         playerController.onStartedMovingHorizontally += (float direction) =>
         {
-            UpdatePlayerPosition(new Vector2Int((int)direction, 0));
+            /*if (currentTargetPosition.y == playerPositionInMap.y)
+            {
+                currentTargetPosition.x = playerPositionInMap.x + (direction > 0 ? 1 : -1);
+                MarkCellAsTarget(currentTargetPosition);
+            }*/
+            // UpdatePlayerPosition(new Vector2Int((int)direction, 0));
+            // UpdatePlayerPosition(Vector2Int.zero);
+        };
+
+        playerController.onStartedMovingVertically += () =>
+        {
+            if (currentTargetPosition.y <= playerPositionInMap.y)
+            {
+                currentTargetPosition = playerPositionInMap + new Vector2Int(0, 1);
+                MarkCellAsTarget(currentTargetPosition);
+            }
         };
 
         inputQueue.onActionAdded += (InputAction action) =>
         {
+            switch (action)
+            {
+                case InputAction.MoveLeft:
+                    currentTargetPosition.x -= 1;
+                    break;
+                case InputAction.MoveRight:
+                    currentTargetPosition.x += 1;
+                    break;
+                case InputAction.SkipStep:
+                    currentTargetPosition.y += 1;
+                    break;
+            }
+
+            MarkCellAsTarget(currentTargetPosition);
             /*
             MoveCurrentTargetPosition(action, true);
             try
@@ -167,52 +200,45 @@ public class Field : MonoBehaviour
 
         inputQueue.onActionRemoved += (InputAction action) =>
         {
-            // MoveCurrentTargetPosition(action, false);
+            UnmarkCellAsTarget(currentTargetPosition);
+            switch (action)
+            {
+                case InputAction.MoveLeft:
+                    currentTargetPosition.x += 1;
+                    break;
+                case InputAction.MoveRight:
+                    currentTargetPosition.x -= 1;
+                    break;
+                case InputAction.SkipStep:
+                    currentTargetPosition.y -= 1;
+                    break;
+            }
         };
     }
 
-    void MoveCurrentTargetPosition(InputAction action, bool wasAdded)
+    private void Update()
     {
-        /*
-        if (currentTargetPosition == null)
-        {
-            currentTargetPosition = playerPositionInMap;
-        }
-
-        switch (action)
-        {
-            case InputAction.MoveLeft:
-                currentTargetPosition = new Vector2Int(currentTargetPosition.x + (wasAdded ? 1 : -1), currentTargetPosition.y);
-                break;
-            case InputAction.MoveRight:
-                currentTargetPosition = new Vector2Int(currentTargetPosition.x - (wasAdded ? 1 : -1), currentTargetPosition.y);
-                break;
-            case InputAction.SkipStep:
-                currentTargetPosition = new Vector2Int(currentTargetPosition.x, currentTargetPosition.y + (wasAdded ? 1 : -1));
-                break;
-            default:
-                throw new System.Exception();
-        }
-        */
+        UpdatePlayerPosition();
     }
 
-    void UpdatePlayerPosition(Vector2Int direction)
+    void UpdatePlayerPosition()
     {
-        // TODO: fix position detection!
+        // TODO: find a better way
+        var firstElementPosition = new Vector3(0, 0, 0);
+        foreach (var item in objectsMap[0][0])
+        {
+            if (item != null)
+            {
+                firstElementPosition = item.transform.position - new Vector3(0, 0, item.transform.localScale.z / 2);
+                break;
+            }
+        }
 
         // field is moving, so we need to keep player's position fresh
         playerPositionInMap = new Vector2Int(
-            (int)((player.transform.position.x + cellSize / 2) / cellSize + width / 2),
-            (int)((player.transform.position.z - cellSize / 2) / cellSize)
+            (int)((player.transform.position.x + width * cellSize / 2) / cellSize),
+            (int)((player.transform.position.z - firstElementPosition.z) / cellSize)
         );
-        if (playerPositionInMap.x < 0)
-        {
-            playerPositionInMap.x = 0;
-        }
-        if (playerPositionInMap.x >= width)
-        {
-            playerPositionInMap.x = width - 1;
-        }
 
         if (playerPositionInMap.y < 0)
         {
@@ -224,10 +250,12 @@ public class Field : MonoBehaviour
         }
 
         MarkCellAsTarget(playerPositionInMap);
+        /*
         MarkCellAsTarget(playerPositionInMap + new Vector2Int(
             direction.x == 0 ? 0 : direction.x > 0 ? 1 : -1,
             direction.y == 0 ? 0 : direction.y > 0 ? 1 : -1
         ));
+        */
     }
 
     void MarkCellAsTarget(Vector2Int position)
@@ -250,10 +278,26 @@ public class Field : MonoBehaviour
         }
     }
 
-
-    void Update()
+    void UnmarkCellAsTarget(Vector2Int position)
     {
+        if (position.x < 0 || position.x >= width ||
+            position.y < 0 || position.y >= height)
+        {
+            return;
+        }
+
+        var groundObj = objectsMap[0][position.y][position.x];
+
+        if (groundObj != null)
+        {
+            groundObj.
+                GetComponent<ActualObjectHolder>().
+                actualObject.
+                GetComponent<MeshRenderer>().
+                material = cellMaterial;
+        }
     }
+
 
     void CreateRow(int rowNumber, Vector3 shiftPosition, bool spawnHazards = true)
     {
@@ -335,7 +379,7 @@ public class Field : MonoBehaviour
             else
             {
                 // try to spawn a bonus
-                if (bonuses.Length> 0)
+                if (bonuses.Length > 0)
                 {
                     var randomBonusEntry = bonuses[Random.Range(0, bonuses.Length)];
                     if (Random.value < randomBonusEntry.probability)

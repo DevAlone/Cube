@@ -6,6 +6,8 @@ public class PlayerController : MonoBehaviour
 {
     public delegate void OnStartedMovingHorizontally(float direction);
     public OnStartedMovingHorizontally onStartedMovingHorizontally;
+    public delegate void OnStartedMovingVertically();
+    public OnStartedMovingVertically onStartedMovingVertically;
     public GameObject groundLevelObject;
     public float horizontalSpeed;
     public float horizontalAcceleration;
@@ -68,6 +70,10 @@ public class PlayerController : MonoBehaviour
                     horizontalSpeed * Time.deltaTime * gameController.gameSpeedModifier
                 );
             isMovingHorizontally = parentTransform.position != moveTarget;
+            if (!isMovingHorizontally)
+            {
+                onStartedMovingVertically?.Invoke();
+            }
         }
         else
         {

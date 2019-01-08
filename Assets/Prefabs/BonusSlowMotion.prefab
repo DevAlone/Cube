@@ -60,7 +60,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   visualObject: {fileID: 2538848633298574661}
   durationSeconds: 4
-  speedModifier: 0.25
+  speedModifier: 0.5
 --- !u!1 &2538848633298574661
 GameObject:
   m_ObjectHideFlags: 0
