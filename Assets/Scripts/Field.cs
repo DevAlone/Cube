@@ -11,8 +11,12 @@ public class BonusEntry
 
 public class Field : MonoBehaviour
 {
+    public GameObject player;
+    public GameObject[] groundObjectPrefabs;
+    public GameObject[] groundHazardObjectPrefabs;
+    public GameObject[] hazardObjectPrefabs;
     // number of cells in the field
-    public int width, height;
+    public int columns, rows;
     public float cellSize;
     public float verticalSpeed;
     // per row
@@ -24,12 +28,8 @@ public class Field : MonoBehaviour
     public float hazardInTheGroundProbability;
     public float hazardInTheGroundProbabilityIncrementer;
     public float maximumHazardInTheGroundProbability;
-    public GameObject[] groundObjectPrefabs;
-    public GameObject[] groundHazardObjectPrefabs;
-    public GameObject[] hazardObjectPrefabs;
     public delegate void OnRowCreatedDelegate();
     public OnRowCreatedDelegate onRowCreated;
-    public GameObject player;
     public InputQueue inputQueue;
     public Material targetCellMaterial;
     public Material cellMaterial;
@@ -38,13 +38,14 @@ public class Field : MonoBehaviour
     private CircularBuffer<GameObject[]>[] objectsMap;
     public Vector2Int playerPositionInMap;
     public Vector2Int currentTargetPosition;
+    // first is the groud, second is where cube, hazards and bonuses live
     private const int numberOfLayers = 2;
     private PlayerController playerController;
     private GameController gameController;
 
     public void Move(float deltaTime)
     {
-        int len = height;
+        int len = rows;
 
         for (int z = 0; z < len; ++z)
         {
@@ -53,15 +54,14 @@ public class Field : MonoBehaviour
 
             for (int layer = 0; layer < numberOfLayers; ++layer)
             {
-
-                for (int x = 0; x < width; ++x)
+                for (int x = 0; x < columns; ++x)
                 {
                     var obj = objectsMap[layer][z][x];
 
                     if (obj != null)
                     {
                         obj.transform.position -= new Vector3(0, 0, verticalSpeed * deltaTime * gameController.gameSpeedModifier);
-                        if (obj.transform.position.z <= 0)
+                        if (obj.transform.position.z < 0)
                         {
                             deletedObjZPosition = obj.transform.position.z;
                             wasRowDeleted = true;
@@ -83,8 +83,9 @@ public class Field : MonoBehaviour
 
 
                 CreateRow(
-                    height - 1,
-                    new Vector3(-(width / 2) * cellSize, 0.0f, deletedObjZPosition + (height - 1) * cellSize)
+                    rows - 1,
+                    // position of the last row
+                    new Vector3(-(columns / 2) * cellSize, 0.0f, deletedObjZPosition + (rows - 1) * cellSize)
                 );
             }
         }
@@ -94,23 +95,23 @@ public class Field : MonoBehaviour
     {
         gameController = GameController.GetCurrent();
 
-        objectsMap = new CircularBuffer<GameObject[]>[2];
-        for (int layer = 0; layer < 2; ++layer)
+        objectsMap = new CircularBuffer<GameObject[]>[numberOfLayers];
+        for (int layer = 0; layer < numberOfLayers; ++layer)
         {
-            objectsMap[layer] = new CircularBuffer<GameObject[]>(height);
+            objectsMap[layer] = new CircularBuffer<GameObject[]>(rows);
         }
 
-        for (int z = 0; z < height; ++z)
+        for (int layer = 0; layer < numberOfLayers; ++layer)
         {
-            for (int layer = 0; layer < 2; ++layer)
+            for (int z = 0; z < rows; ++z)
             {
-                objectsMap[layer][z] = new GameObject[width];
+                objectsMap[layer][z] = new GameObject[columns];
             }
         }
 
-        for (int z = 0; z < height; ++z)
+        for (int z = 0; z < rows; ++z)
         {
-            CreateRow(z, new Vector3(-(width / 2) * cellSize, 0, z * cellSize), false);
+            CreateRow(z, new Vector3(-(columns / 2) * cellSize, 0, z * cellSize), false);
         }
 
         playerController = player.GetComponent<ActualObjectHolder>().actualObject.GetComponent<PlayerController>();
@@ -138,9 +139,10 @@ public class Field : MonoBehaviour
 
             UpdatePlayerPosition();
             currentTargetPosition.y -= 1;
-            if (currentTargetPosition.y < playerPositionInMap.y)
+            if (currentTargetPosition.y <= playerPositionInMap.y)
             {
-                currentTargetPosition.y = playerPositionInMap.y;
+                currentTargetPosition.y = playerPositionInMap.y + 1;
+                MarkCellAsTarget(currentTargetPosition);
             }
         };
 
@@ -157,11 +159,6 @@ public class Field : MonoBehaviour
 
         playerController.onStartedMovingVertically += () =>
         {
-            if (currentTargetPosition.y <= playerPositionInMap.y)
-            {
-                currentTargetPosition = playerPositionInMap + new Vector2Int(0, 1);
-                MarkCellAsTarget(currentTargetPosition);
-            }
         };
 
         inputQueue.onActionAdded += (InputAction action) =>
@@ -180,25 +177,9 @@ public class Field : MonoBehaviour
             }
 
             MarkCellAsTarget(currentTargetPosition);
-            /*
-            MoveCurrentTargetPosition(action, true);
-            try
-            {
-                var groundObject = groundGameObjectsMap[currentTargetPosition.y][currentTargetPosition.x];
-                if (groundObject != null)
-                {
-                    groundObject.GetComponent<ActualObjectHolder>().actualObject.GetComponent<MeshRenderer>().material = targetCellMaterial;
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Log(ex);
-                Debug.Log(currentTargetPosition);
-            }
-*/
         };
 
-        inputQueue.onActionRemoved += (InputAction action) =>
+        inputQueue.onLastActionRemoved += (InputAction action) =>
         {
             UnmarkCellAsTarget(currentTargetPosition);
             switch (action)
@@ -218,7 +199,7 @@ public class Field : MonoBehaviour
 
     private void Update()
     {
-        UpdatePlayerPosition();
+        // UpdatePlayerPosition();
     }
 
     void UpdatePlayerPosition()
@@ -234,22 +215,23 @@ public class Field : MonoBehaviour
             }
         }
 
-        // field is moving, so we need to keep player's position fresh
         playerPositionInMap = new Vector2Int(
-            (int)((player.transform.position.x + width * cellSize / 2) / cellSize),
+            (int)((player.transform.position.x + columns * cellSize / 2) / cellSize),
             (int)((player.transform.position.z - firstElementPosition.z) / cellSize)
         );
 
+        /* 
         if (playerPositionInMap.y < 0)
         {
             playerPositionInMap.y = 0;
         }
-        if (playerPositionInMap.y >= height)
+        if (playerPositionInMap.y >= rows)
         {
-            playerPositionInMap.y = height - 1;
+            playerPositionInMap.y = rows - 1;
         }
+        */
 
-        MarkCellAsTarget(playerPositionInMap);
+        // MarkCellAsTarget(playerPositionInMap);
         /*
         MarkCellAsTarget(playerPositionInMap + new Vector2Int(
             direction.x == 0 ? 0 : direction.x > 0 ? 1 : -1,
@@ -260,8 +242,8 @@ public class Field : MonoBehaviour
 
     void MarkCellAsTarget(Vector2Int position)
     {
-        if (position.x < 0 || position.x >= width ||
-            position.y < 0 || position.y >= height)
+        if (position.x < 0 || position.x >= columns ||
+            position.y < 0 || position.y >= rows)
         {
             return;
         }
@@ -280,8 +262,8 @@ public class Field : MonoBehaviour
 
     void UnmarkCellAsTarget(Vector2Int position)
     {
-        if (position.x < 0 || position.x >= width ||
-            position.y < 0 || position.y >= height)
+        if (position.x < 0 || position.x >= columns ||
+            position.y < 0 || position.y >= rows)
         {
             return;
         }
@@ -330,7 +312,7 @@ public class Field : MonoBehaviour
             Debug.Log("Unable to find path");
         }
 
-        for (int i = 0; i < width; ++i)
+        for (int i = 0; i < columns; ++i)
         {
             if (skipIndex == i)
             {
@@ -412,7 +394,7 @@ public class Field : MonoBehaviour
         }
         visitedIndices.Add(playerPosition);
 
-        if (playerPosition.x < 0 || playerPosition.x >= width || playerPosition.y < 0 || playerPosition.y >= height)
+        if (playerPosition.x < 0 || playerPosition.x >= columns || playerPosition.y < 0 || playerPosition.y >= rows)
         {
             return new List<int>();
         }

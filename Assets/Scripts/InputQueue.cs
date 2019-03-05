@@ -12,9 +12,9 @@ public enum InputAction
 public class InputQueue : MonoBehaviour
 {
     public delegate void OnActionAdded(InputAction action);
-    public delegate void OnActionRemoved(InputAction action);
+    public delegate void OnLastActionRemoved(InputAction action);
     public OnActionAdded onActionAdded;
-    public OnActionRemoved onActionRemoved;
+    public OnLastActionRemoved onLastActionRemoved;
 
     private LinkedList<InputAction> inputQueue;
     private Dictionary<KeyCode, InputAction> keyInputActionMap;
@@ -28,7 +28,6 @@ public class InputQueue : MonoBehaviour
     public InputAction Dequeue()
     {
         var item = inputQueue.First.Value;
-        onActionAdded?.Invoke(item);
         inputQueue.RemoveFirst();
         return item;
     }
@@ -56,11 +55,26 @@ public class InputQueue : MonoBehaviour
 
     void Update()
     {
-        foreach (var item in inputQueue)
-        {
-            Debug.Log(item);
-        }
-        Debug.Log("\n\n");
+        /*
+          var queueString = "";
+          foreach (var item in inputQueue)
+          {
+              switch (item)
+              {
+                  case InputAction.MoveLeft:
+                      queueString += "<";
+                      break;
+                  case InputAction.MoveRight:
+                      queueString += ">";
+
+                      break;
+                  case InputAction.SkipStep:
+                      queueString += "|";
+                      break;
+              }
+          }
+          Debug.Log(queueString);
+          */
 
         foreach (var pair in keyInputActionMap)
         {
@@ -71,7 +85,7 @@ public class InputQueue : MonoBehaviour
                     var lastAction = inputQueue.Last.Value;
                     if (AreActionsOpposite(lastAction, pair.Value))
                     {
-                        onActionRemoved(lastAction);
+                        onLastActionRemoved?.Invoke(lastAction);
                         inputQueue.RemoveLast();
                         continue;
                     }
