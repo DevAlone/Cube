@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2450038381516576174}
   - component: {fileID: 4371772691089910508}
   - component: {fileID: 153345883322173002}
+  - component: {fileID: 7874096148278852470}
   m_Layer: 0
   m_Name: BonusSlowMotion
   m_TagString: Bonus
@@ -59,8 +60,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visualObject: {fileID: 2538848633298574661}
-  durationSeconds: 4
-  speedModifier: 0.5
+  speedModifier: 1
+--- !u!114 &7874096148278852470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2450038381516576170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b71e5cff1d182ce4b09b8aa487e0c55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  xRotationSpeed: 0
+  yRotationSpeed: 20
+  zRotationSpeed: 0
 --- !u!1 &2538848633298574661
 GameObject:
   m_ObjectHideFlags: 0

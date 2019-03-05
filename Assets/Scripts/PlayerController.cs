@@ -79,7 +79,7 @@ public class PlayerController : MonoBehaviour
         {
             animator.Play("PlayerVerticalRotation");
 
-            animator.speed = field.verticalSpeed * verticalRotationCoefficient * gameController.gameSpeedModifier;
+            animator.speed = field.VerticalSpeed * verticalRotationCoefficient * gameController.gameSpeedModifier;
         }
 
         if (parentTransform.position.y < groundLevelObject.transform.position.y)

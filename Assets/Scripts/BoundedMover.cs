@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 // moves item from start point to end and vise versa
 public class BoundedMover : MonoBehaviour
@@ -20,6 +18,7 @@ public class BoundedMover : MonoBehaviour
     void FixedUpdate()
     {
         transform.localPosition = Vector3.MoveTowards(transform.localPosition, target, speed * Time.deltaTime);
+
         if (transform.localPosition == endPoint)
         {
             target = startPoint;

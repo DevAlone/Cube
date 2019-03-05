@@ -11,6 +11,7 @@ public enum InputAction
 
 public class InputQueue : MonoBehaviour
 {
+    public uint maximumQueueSize;
     public delegate void OnActionAdded(InputAction action);
     public delegate void OnLastActionRemoved(InputAction action);
     public OnActionAdded onActionAdded;
@@ -56,25 +57,25 @@ public class InputQueue : MonoBehaviour
     void Update()
     {
         /*
-          var queueString = "";
-          foreach (var item in inputQueue)
-          {
-              switch (item)
-              {
-                  case InputAction.MoveLeft:
-                      queueString += "<";
-                      break;
-                  case InputAction.MoveRight:
-                      queueString += ">";
+        var queueString = "";
+        foreach (var item in inputQueue)
+        {
+            switch (item)
+            {
+                case InputAction.MoveLeft:
+                    queueString += "<";
+                    break;
+                case InputAction.MoveRight:
+                    queueString += ">";
 
-                      break;
-                  case InputAction.SkipStep:
-                      queueString += "|";
-                      break;
-              }
-          }
-          Debug.Log(queueString);
-          */
+                    break;
+                case InputAction.SkipStep:
+                    queueString += "|";
+                    break;
+            }
+        }
+        Debug.Log(queueString);
+		*/
 
         foreach (var pair in keyInputActionMap)
         {
@@ -91,8 +92,11 @@ public class InputQueue : MonoBehaviour
                     }
                 }
 
-                inputQueue.AddLast(pair.Value);
-                onActionAdded?.Invoke(pair.Value);
+                if (inputQueue.Count < maximumQueueSize)
+                {
+                    inputQueue.AddLast(pair.Value);
+                    onActionAdded?.Invoke(pair.Value);
+                }
             }
         }
     }

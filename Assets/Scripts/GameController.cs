@@ -111,7 +111,7 @@ public class GameController : MonoBehaviour
                         default:
                             // skip current step
                             isProcessingInputQueue = false;
-                            return;
+                            break;
                     }
                 }
             }

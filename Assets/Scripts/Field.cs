@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -18,10 +17,22 @@ public class Field : MonoBehaviour
     // number of cells in the field
     public int columns, rows;
     public float cellSize;
-    public float verticalSpeed;
+    public float VerticalSpeed
+    {
+        get { return _verticalSpeed; }
+        set
+        {
+            _verticalSpeed = value;
+            if (_verticalSpeed < minimumVerticalSpeed)
+            {
+                _verticalSpeed = minimumVerticalSpeed;
+            }
+        }
+    }
     // per row
     public float verticalAcceleration;
     public float maximumVerticalSpeed;
+    public float minimumVerticalSpeed;
     public float hazardProbability;
     public float hazardProbabilityIncrementer;
     public float maximumHazardProbability;
@@ -35,6 +46,7 @@ public class Field : MonoBehaviour
     public Material cellMaterial;
     public BonusEntry[] bonuses;
 
+    private float _verticalSpeed;
     private CircularBuffer<GameObject[]>[] objectsMap;
     public Vector2Int playerPositionInMap;
     public Vector2Int currentTargetPosition;
@@ -60,7 +72,7 @@ public class Field : MonoBehaviour
 
                     if (obj != null)
                     {
-                        obj.transform.position -= new Vector3(0, 0, verticalSpeed * deltaTime * gameController.gameSpeedModifier);
+                        obj.transform.position -= new Vector3(0, 0, VerticalSpeed * deltaTime * gameController.gameSpeedModifier);
                         if (obj.transform.position.z < 0)
                         {
                             deletedObjZPosition = obj.transform.position.z;
@@ -93,6 +105,7 @@ public class Field : MonoBehaviour
 
     void Start()
     {
+        VerticalSpeed = minimumVerticalSpeed;
         gameController = GameController.GetCurrent();
 
         objectsMap = new CircularBuffer<GameObject[]>[numberOfLayers];
@@ -121,10 +134,10 @@ public class Field : MonoBehaviour
 
         onRowCreated += () =>
         {
-            verticalSpeed += verticalAcceleration;
-            if (verticalSpeed > maximumVerticalSpeed)
+            VerticalSpeed += verticalAcceleration;
+            if (VerticalSpeed > maximumVerticalSpeed)
             {
-                verticalSpeed = maximumVerticalSpeed;
+                VerticalSpeed = maximumVerticalSpeed;
             }
             hazardProbability += hazardProbabilityIncrementer;
             if (hazardProbability > maximumHazardProbability)
@@ -141,24 +154,19 @@ public class Field : MonoBehaviour
             currentTargetPosition.y -= 1;
             if (currentTargetPosition.y <= playerPositionInMap.y)
             {
-                currentTargetPosition.y = playerPositionInMap.y + 1;
+                currentTargetPosition = playerPositionInMap;
                 MarkCellAsTarget(currentTargetPosition);
             }
         };
 
-        playerController.onStartedMovingHorizontally += (float direction) =>
+        // if we're moving automatically, not by player's input
+        onRowCreated += () =>
         {
-            /*if (currentTargetPosition.y == playerPositionInMap.y)
+            if (inputQueue.IsEmpty())
             {
-                currentTargetPosition.x = playerPositionInMap.x + (direction > 0 ? 1 : -1);
+                currentTargetPosition.y = playerPositionInMap.y + 1;
                 MarkCellAsTarget(currentTargetPosition);
-            }*/
-            // UpdatePlayerPosition(new Vector2Int((int)direction, 0));
-            // UpdatePlayerPosition(Vector2Int.zero);
-        };
-
-        playerController.onStartedMovingVertically += () =>
-        {
+            }
         };
 
         inputQueue.onActionAdded += (InputAction action) =>
@@ -199,7 +207,7 @@ public class Field : MonoBehaviour
 
     private void Update()
     {
-        // UpdatePlayerPosition();
+        UpdatePlayerPosition();
     }
 
     void UpdatePlayerPosition()
