@@ -9,7 +9,24 @@ public class PlayerController : MonoBehaviour
     public delegate void OnStartedMovingVertically();
     public OnStartedMovingVertically onStartedMovingVertically;
     public GameObject groundLevelObject;
-    public float horizontalSpeed;
+    public float HorizontalSpeed
+    {
+        get { return _horizontalSpeed; }
+        set
+        {
+            _horizontalSpeed = value;
+            if (_horizontalSpeed < minimumHorizontalSpeed)
+            {
+                _horizontalSpeed = minimumHorizontalSpeed;
+            }
+            else if (_horizontalSpeed > maximumHorizontalSpeed)
+            {
+                _horizontalSpeed = maximumHorizontalSpeed;
+            }
+        }
+    }
+    public float minimumHorizontalSpeed;
+    public float maximumHorizontalSpeed;
     public float horizontalAcceleration;
     public bool IsMovingHorizontally
     {
@@ -28,6 +45,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private Animator animator;
     private Transform parentTransform;
+    private float _horizontalSpeed;
 
     public void Move(float stepSize)
     {
@@ -45,7 +63,7 @@ public class PlayerController : MonoBehaviour
 
         field.onRowCreated += () =>
         {
-            horizontalSpeed += horizontalAcceleration;
+            HorizontalSpeed += horizontalAcceleration;
         };
     }
 
@@ -53,7 +71,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isMovingHorizontally)
         {
-            animator.speed = horizontalSpeed * horizontalRotationCoefficient * gameController.gameSpeedModifier;
+            animator.speed = HorizontalSpeed * horizontalRotationCoefficient * gameController.gameSpeedModifier;
             float direction = Mathf.Sign(moveTarget.x - parentTransform.position.x);
             if (direction > 0)
             {
@@ -67,7 +85,7 @@ public class PlayerController : MonoBehaviour
             parentTransform.position = Vector3.MoveTowards(
                     parentTransform.position,
                     moveTarget,
-                    horizontalSpeed * Time.deltaTime * gameController.gameSpeedModifier
+                    HorizontalSpeed * Time.deltaTime * gameController.gameSpeedModifier
                 );
             isMovingHorizontally = parentTransform.position != moveTarget;
             if (!isMovingHorizontally)
