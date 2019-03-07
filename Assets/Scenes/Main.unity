@@ -870,12 +870,12 @@ MonoBehaviour:
   m_Script: {fileID: 1980459831, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 500, y: 1000}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -957,7 +957,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 200}
+  m_SizeDelta: {x: 500, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &890979870
 MonoBehaviour:
@@ -981,7 +981,7 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 12800000, guid: 28019c94e97ee65beb2ee85a68d67013, type: 3}
-    m_FontSize: 18
+    m_FontSize: 36
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 1
@@ -1054,15 +1054,18 @@ MonoBehaviour:
   columns: 5
   rows: 30
   cellSize: 1
+  verticalSpeed:
+    minimumValue: 2
+    maximumValue: 8
+  hazardProbability:
+    minimumValue: 0.01
+    maximumValue: 0.4
+  hazardInTheGroundProbability:
+    minimumValue: 0.01
+    maximumValue: 0.4
   verticalAcceleration: 0.01
-  maximumVerticalSpeed: 20
-  minimumVerticalSpeed: 3
-  hazardProbability: 0.1
   hazardProbabilityIncrementer: 0.00001
-  maximumHazardProbability: 0.4
-  hazardInTheGroundProbability: 0.05
   hazardInTheGroundProbabilityIncrementer: 0.00001
-  maximumHazardInTheGroundProbability: 0.4
   inputQueue: {fileID: 388180237}
   targetCellMaterial: {fileID: 2100000, guid: 7cd7c684a0042cf4fb0f83c08ef7a8b3, type: 2}
   cellMaterial: {fileID: 2100000, guid: 0146f05f256de7c44a3df8ca434ba798, type: 2}

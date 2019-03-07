@@ -17,7 +17,7 @@ public class BonusSlowMotion : BonusBase
             playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
         }
 
-        gameController.field.VerticalSpeed -= speedModifier;
+        gameController.field.verticalSpeed -= speedModifier;
         playerController.HorizontalSpeed -= speedModifier;
     }
 }
