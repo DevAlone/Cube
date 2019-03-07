@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -68,11 +66,47 @@ public class GameController : MonoBehaviour
         playerController = playerObject.GetComponent<PlayerController>();
         field.onRowCreated += () =>
         {
-            if (!inputQueue.IsEmpty())
-            {
-                isProcessingInputQueue = true;
-            }
+            isProcessingInputQueue = true;
             Score += scorePerRow;
+
+            field.verticalSpeed += field.verticalAcceleration;
+            field.hazardProbability += field.hazardProbabilityIncrementer;
+            field.hazardInTheGroundProbability += field.hazardInTheGroundProbabilityIncrementer;
+        };
+
+        inputQueue.onActionAdded += (InputAction action) =>
+        {
+            switch (action)
+            {
+                case InputAction.MoveLeft:
+                    field.currentTargetPosition.x -= 1;
+                    break;
+                case InputAction.MoveRight:
+                    field.currentTargetPosition.x += 1;
+                    break;
+                case InputAction.SkipStep:
+                    field.currentTargetPosition.y += 1;
+                    break;
+            }
+
+            field.MarkCellAsTarget(field.currentTargetPosition);
+        };
+
+        inputQueue.onLastActionRemoved += (InputAction action) =>
+        {
+            field.UnmarkCellAsTarget(field.currentTargetPosition);
+            switch (action)
+            {
+                case InputAction.MoveLeft:
+                    field.currentTargetPosition.x += 1;
+                    break;
+                case InputAction.MoveRight:
+                    field.currentTargetPosition.x -= 1;
+                    break;
+                case InputAction.SkipStep:
+                    field.currentTargetPosition.y -= 1;
+                    break;
+            }
         };
     }
 
@@ -84,41 +118,52 @@ public class GameController : MonoBehaviour
 
     void Update()
     {
+        if (isGameOver)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            return;
+        }
+
         if (isProcessingInputQueue)
         {
-            if (isGameOver)
+            ProcessInputQueue();
+            if (!isProcessingInputQueue && inputQueue.IsEmpty())
             {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-                return;
-            }
-
-            if (!playerController.IsMovingHorizontally)
-            {
-                if (inputQueue.IsEmpty())
-                {
-                    isProcessingInputQueue = false;
-                }
-                else
-                {
-                    switch (inputQueue.Dequeue())
-                    {
-                        case InputAction.MoveLeft:
-                            MovePlayer(-field.cellSize);
-                            break;
-                        case InputAction.MoveRight:
-                            MovePlayer(field.cellSize);
-                            break;
-                        default:
-                            // skip current step
-                            isProcessingInputQueue = false;
-                            break;
-                    }
-                }
+                field.currentTargetPosition = field.playerPositionInMap;
+                field.currentTargetPosition.y += 1;
+                field.MarkCellAsTarget(field.currentTargetPosition);
             }
         }
         else
         {
             field.Move(Time.deltaTime);
+        }
+    }
+
+    void ProcessInputQueue()
+    {
+        if (!playerController.IsMovingHorizontally)
+        {
+            if (inputQueue.IsEmpty())
+            {
+                isProcessingInputQueue = false;
+            }
+            else
+            {
+                switch (inputQueue.Dequeue())
+                {
+                    case InputAction.MoveLeft:
+                        MovePlayer(-field.cellSize);
+                        break;
+                    case InputAction.MoveRight:
+                        MovePlayer(field.cellSize);
+                        break;
+                    default:
+                        // skip current step
+                        isProcessingInputQueue = false;
+                        break;
+                }
+            }
         }
     }
 }

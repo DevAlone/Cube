@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public enum InputAction
@@ -57,7 +56,7 @@ public class InputQueue : MonoBehaviour
     void Update()
     {
         /*
-        var queueString = "";
+        var queueString = inputQueue.Count.ToString() + ": ";
         foreach (var item in inputQueue)
         {
             switch (item)
@@ -67,7 +66,6 @@ public class InputQueue : MonoBehaviour
                     break;
                 case InputAction.MoveRight:
                     queueString += ">";
-
                     break;
                 case InputAction.SkipStep:
                     queueString += "|";

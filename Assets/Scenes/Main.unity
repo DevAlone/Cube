@@ -463,7 +463,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf725118279007145b9c252dd649f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maximumQueueSize: 5
+  maximumQueueSize: 50
 --- !u!1 &517135620
 GameObject:
   m_ObjectHideFlags: 0
@@ -1055,13 +1055,13 @@ MonoBehaviour:
   rows: 30
   cellSize: 1
   verticalSpeed:
-    minimumValue: 2
-    maximumValue: 8
+    minimumValue: 3
+    maximumValue: 16
   hazardProbability:
-    minimumValue: 0.01
+    minimumValue: 0.1
     maximumValue: 0.4
   hazardInTheGroundProbability:
-    minimumValue: 0.01
+    minimumValue: 0.1
     maximumValue: 0.4
   verticalAcceleration: 0.01
   hazardProbabilityIncrementer: 0.00001

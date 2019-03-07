@@ -75,9 +75,10 @@ public class Field : MonoBehaviour
                 {
                     objectsMap[layer].Rotate(1);
                 }
+                currentTargetPosition.y -= 1;
                 --len;
                 --z;
-
+                UpdatePlayerPosition();
 
                 CreateRow(
                     rows - 1,
@@ -86,6 +87,54 @@ public class Field : MonoBehaviour
                 );
             }
         }
+    }
+
+    public void MarkCellAsTarget(Vector2Int position)
+    {
+        if (position.x < 0 || position.x >= columns ||
+            position.y < 0 || position.y >= rows)
+        {
+            return;
+        }
+
+        var groundObj = objectsMap[0][position.y][position.x];
+
+        if (groundObj != null)
+        {
+            groundObj.
+                GetComponent<ActualObjectHolder>().
+                actualObject.
+                GetComponent<MeshRenderer>().
+                material = targetCellMaterial;
+        }
+    }
+
+    public void UnmarkCellAsTarget(Vector2Int position)
+    {
+        if (position.x < 0 || position.x >= columns ||
+            position.y < 0 || position.y >= rows)
+        {
+            return;
+        }
+
+        var groundObj = objectsMap[0][position.y][position.x];
+
+        if (groundObj != null)
+        {
+            groundObj.
+                GetComponent<ActualObjectHolder>().
+                actualObject.
+                GetComponent<MeshRenderer>().
+                material = cellMaterial;
+        }
+    }
+
+    public void UpdatePlayerPosition()
+    {
+        playerPositionInMap = new Vector2Int(
+            (int)((player.transform.position.x + columns * cellSize / 2) / cellSize),
+            (int)((player.transform.position.z - player.transform.localScale.z / 2) / cellSize)
+        );
     }
 
     void Start()
@@ -118,149 +167,11 @@ public class Field : MonoBehaviour
 
         UpdatePlayerPosition();
         currentTargetPosition = playerPositionInMap;
-
-        onRowCreated += () =>
-        {
-            verticalSpeed += verticalAcceleration;
-            hazardProbability += hazardProbabilityIncrementer;
-            hazardInTheGroundProbability += hazardInTheGroundProbabilityIncrementer;
-
-            UpdatePlayerPosition();
-            currentTargetPosition.y -= 1;
-            if (currentTargetPosition.y <= playerPositionInMap.y)
-            {
-                currentTargetPosition = playerPositionInMap;
-                MarkCellAsTarget(currentTargetPosition);
-            }
-        };
-
-        // if we're moving automatically, not by player's input
-        onRowCreated += () =>
-        {
-            if (inputQueue.IsEmpty())
-            {
-                currentTargetPosition.y = playerPositionInMap.y + 1;
-                MarkCellAsTarget(currentTargetPosition);
-            }
-        };
-
-        inputQueue.onActionAdded += (InputAction action) =>
-        {
-            switch (action)
-            {
-                case InputAction.MoveLeft:
-                    currentTargetPosition.x -= 1;
-                    break;
-                case InputAction.MoveRight:
-                    currentTargetPosition.x += 1;
-                    break;
-                case InputAction.SkipStep:
-                    currentTargetPosition.y += 1;
-                    break;
-            }
-
-            MarkCellAsTarget(currentTargetPosition);
-        };
-
-        inputQueue.onLastActionRemoved += (InputAction action) =>
-        {
-            UnmarkCellAsTarget(currentTargetPosition);
-            switch (action)
-            {
-                case InputAction.MoveLeft:
-                    currentTargetPosition.x += 1;
-                    break;
-                case InputAction.MoveRight:
-                    currentTargetPosition.x -= 1;
-                    break;
-                case InputAction.SkipStep:
-                    currentTargetPosition.y -= 1;
-                    break;
-            }
-        };
     }
 
     private void Update()
     {
         UpdatePlayerPosition();
-    }
-
-    void UpdatePlayerPosition()
-    {
-        // TODO: find a better way
-        var firstElementPosition = new Vector3(0, 0, 0);
-        foreach (var item in objectsMap[0][0])
-        {
-            if (item != null)
-            {
-                firstElementPosition = item.transform.position - new Vector3(0, 0, item.transform.localScale.z / 2);
-                break;
-            }
-        }
-
-        playerPositionInMap = new Vector2Int(
-            (int)((player.transform.position.x + columns * cellSize / 2) / cellSize),
-            (int)((player.transform.position.z - firstElementPosition.z) / cellSize)
-        );
-
-        /* 
-        if (playerPositionInMap.y < 0)
-        {
-            playerPositionInMap.y = 0;
-        }
-        if (playerPositionInMap.y >= rows)
-        {
-            playerPositionInMap.y = rows - 1;
-        }
-        */
-
-        // MarkCellAsTarget(playerPositionInMap);
-        /*
-        MarkCellAsTarget(playerPositionInMap + new Vector2Int(
-            direction.x == 0 ? 0 : direction.x > 0 ? 1 : -1,
-            direction.y == 0 ? 0 : direction.y > 0 ? 1 : -1
-        ));
-        */
-    }
-
-    void MarkCellAsTarget(Vector2Int position)
-    {
-        if (position.x < 0 || position.x >= columns ||
-            position.y < 0 || position.y >= rows)
-        {
-            return;
-        }
-
-        var groundObj = objectsMap[0][position.y][position.x];
-
-        if (groundObj != null)
-        {
-            groundObj.
-                GetComponent<ActualObjectHolder>().
-                actualObject.
-                GetComponent<MeshRenderer>().
-                material = targetCellMaterial;
-        }
-    }
-
-    void UnmarkCellAsTarget(Vector2Int position)
-    {
-        if (position.x < 0 || position.x >= columns ||
-            position.y < 0 || position.y >= rows)
-        {
-            return;
-        }
-
-        var groundObj = objectsMap[0][position.y][position.x];
-
-        if (groundObj != null)
-        {
-            groundObj.
-                GetComponent<ActualObjectHolder>().
-                actualObject.
-                GetComponent<MeshRenderer>().
-                material = cellMaterial;
-        }
     }
 
 
