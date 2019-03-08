@@ -94,7 +94,6 @@ public class GameController : MonoBehaviour
 
         inputQueue.onLastActionRemoved += (InputAction action) =>
         {
-            field.UnmarkCellAsTarget(field.currentTargetPosition);
             switch (action)
             {
                 case InputAction.MoveLeft:
@@ -129,6 +128,7 @@ public class GameController : MonoBehaviour
             ProcessInputQueue();
             if (!isProcessingInputQueue && inputQueue.IsEmpty())
             {
+                // mark next cell if we're moving not by player's input but automatically
                 field.currentTargetPosition = field.playerPositionInMap;
                 field.currentTargetPosition.y += 1;
                 field.MarkCellAsTarget(field.currentTargetPosition);

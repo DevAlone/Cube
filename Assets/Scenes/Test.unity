@@ -1058,11 +1058,11 @@ MonoBehaviour:
     minimumValue: 1
     maximumValue: 1
   hazardProbability:
-    minimumValue: 0.1
-    maximumValue: 0.4
+    minimumValue: 0
+    maximumValue: 0
   hazardInTheGroundProbability:
-    minimumValue: 0.1
-    maximumValue: 0.4
+    minimumValue: 0
+    maximumValue: 0
   verticalAcceleration: 0.01
   hazardProbabilityIncrementer: 0.00001
   hazardInTheGroundProbabilityIncrementer: 0.00001
@@ -1072,7 +1072,7 @@ MonoBehaviour:
   bonuses:
   - prefab: {fileID: 2450038381516576170, guid: fd05347ccd68c02419302cfd7274ab09,
       type: 3}
-    probability: 0.01
+    probability: 0
   playerPositionInMap: {x: 0, y: 0}
   currentTargetPosition: {x: 0, y: 0}
 --- !u!1 &1818733845

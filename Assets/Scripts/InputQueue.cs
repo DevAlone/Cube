@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum InputAction
@@ -8,13 +9,17 @@ public enum InputAction
     SkipStep,
 }
 
-public class InputQueue : MonoBehaviour
+public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
 {
     public uint maximumQueueSize;
     public delegate void OnActionAdded(InputAction action);
     public delegate void OnLastActionRemoved(InputAction action);
     public OnActionAdded onActionAdded;
     public OnLastActionRemoved onLastActionRemoved;
+    public int Size
+    {
+        get { return inputQueue.Count; }
+    }
 
     private LinkedList<InputAction> inputQueue;
     private Dictionary<KeyCode, InputAction> keyInputActionMap;
@@ -32,7 +37,7 @@ public class InputQueue : MonoBehaviour
         return item;
     }
 
-    public InputAction Peek()
+    private InputAction Peek()
     {
         return inputQueue.First.Value;
     }
@@ -79,6 +84,7 @@ public class InputQueue : MonoBehaviour
         {
             if (Input.GetKeyDown(pair.Key))
             {
+                /*
                 if (inputQueue.Count > 0)
                 {
                     var lastAction = inputQueue.Last.Value;
@@ -89,6 +95,7 @@ public class InputQueue : MonoBehaviour
                         continue;
                     }
                 }
+				*/
 
                 if (inputQueue.Count < maximumQueueSize)
                 {
@@ -108,5 +115,15 @@ public class InputQueue : MonoBehaviour
         }
 
         return false;
+    }
+
+    public IEnumerator<InputAction> GetEnumerator()
+    {
+        return ((IEnumerable<InputAction>)inputQueue).GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable<InputAction>)inputQueue).GetEnumerator();
     }
 }

@@ -83,7 +83,11 @@ public class Field : MonoBehaviour
                 CreateRow(
                     rows - 1,
                     // position of the last row
-                    new Vector3(-(columns / 2) * cellSize, 0.0f, deletedObjZPosition + (rows - 1) * cellSize)
+                    new Vector3(
+                        -(columns / 2) * cellSize,
+                        0.0f,
+                        deletedObjZPosition + rows * cellSize
+                    )
                 );
             }
         }
@@ -129,12 +133,67 @@ public class Field : MonoBehaviour
         }
     }
 
+    GameObject findFirstGroundObject()
+    {
+        for (int z = 0; z < rows; ++z)
+        {
+            for (int x = 0; x < columns; ++x)
+            {
+                var obj = objectsMap[0][z][x];
+                if (obj != null)
+                {
+                    return obj;
+                }
+            }
+        }
+        throw new System.Exception("unable to find first object");
+    }
     public void UpdatePlayerPosition()
     {
+        var firstObject = findFirstGroundObject();
+        var fieldStartPosition = firstObject.transform.position.z - firstObject.transform.localScale.y / 2;
+
         playerPositionInMap = new Vector2Int(
             (int)((player.transform.position.x + columns * cellSize / 2) / cellSize),
-            (int)((player.transform.position.z - player.transform.localScale.z / 2) / cellSize)
+            (int)((player.transform.position.z - fieldStartPosition) / cellSize)
         );
+    }
+
+    public void DrawPath()
+    {
+        UpdatePlayerPosition();
+        for (int z = 0; z < rows && z < inputQueue.Size; ++z)
+        {
+            for (int x = 0; x < columns; ++x)
+            {
+                UnmarkCellAsTarget(new Vector2Int(x, z));
+            }
+        }
+
+        // draw path
+        MarkCellAsTarget(playerPositionInMap);
+        currentTargetPosition = playerPositionInMap;
+        foreach (var action in inputQueue)
+        {
+            switch (action)
+            {
+                case InputAction.MoveLeft:
+                    currentTargetPosition.x -= 1;
+                    break;
+                case InputAction.MoveRight:
+                    currentTargetPosition.x += 1;
+                    break;
+                case InputAction.SkipStep:
+                    currentTargetPosition.y += 1;
+                    break;
+            }
+            MarkCellAsTarget(currentTargetPosition);
+        }
+        if (inputQueue.Size <= 0)
+        {
+            currentTargetPosition.y += 1;
+            MarkCellAsTarget(currentTargetPosition);
+        }
     }
 
     void Start()
