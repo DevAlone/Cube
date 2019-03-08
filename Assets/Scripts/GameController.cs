@@ -41,15 +41,17 @@ public class GameController : MonoBehaviour
 
     public float gameSpeedModifier = 1;
     public float defaultGameSpeedModifier = 1;
-    public Field field;
+    public GameObject fieldGameObject;
     public GameObject endGameUI;
 
+    public Field field;
 
     private int score = 0;
     private bool isProcessingInputQueue = false;
     private Vector3 playerTarget;
     private PlayerController playerController;
     private bool isGameOver = false;
+    private FieldGenerator fieldGenerator;
 
     public static GameController GetCurrent()
     {
@@ -64,14 +66,16 @@ public class GameController : MonoBehaviour
     void Start()
     {
         playerController = playerObject.GetComponent<PlayerController>();
+        field = fieldGameObject.GetComponent<Field>();
+        fieldGenerator = fieldGameObject.GetComponent<FieldGenerator>();
         field.onRowCreated += () =>
         {
             isProcessingInputQueue = true;
             Score += scorePerRow;
 
             field.verticalSpeed += field.verticalAcceleration;
-            field.hazardProbability += field.hazardProbabilityIncrementer;
-            field.hazardInTheGroundProbability += field.hazardInTheGroundProbabilityIncrementer;
+            fieldGenerator.hazardProbability += fieldGenerator.hazardProbabilityIncrementer;
+            fieldGenerator.hazardInTheGroundProbability += fieldGenerator.hazardInTheGroundProbabilityIncrementer;
         };
 
         inputQueue.onActionAdded += (InputAction action) =>
@@ -94,6 +98,7 @@ public class GameController : MonoBehaviour
 
         inputQueue.onLastActionRemoved += (InputAction action) =>
         {
+            field.UnmarkCellAsTarget(field.currentTargetPosition);
             switch (action)
             {
                 case InputAction.MoveLeft:

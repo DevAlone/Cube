@@ -463,7 +463,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf725118279007145b9c252dd649f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maximumQueueSize: 50
+  maximumQueueSize: 15
 --- !u!1 &517135620
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,8 +820,9 @@ MonoBehaviour:
   inputQueue: {fileID: 388180237}
   gameSpeedModifier: 1
   defaultGameSpeedModifier: 1
-  field: {fileID: 1809376913}
+  fieldGameObject: {fileID: 1809376911}
   endGameUI: {fileID: 789052888}
+  field: {fileID: 1809376913}
 --- !u!1 &789052888
 GameObject:
   m_ObjectHideFlags: 0
@@ -1011,6 +1012,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1809376912}
   - component: {fileID: 1809376913}
+  - component: {fileID: 1809376914}
   m_Layer: 0
   m_Name: Field
   m_TagString: Untagged
@@ -1045,36 +1047,48 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 1818733845}
+  inputQueue: {fileID: 388180237}
+  targetCellMaterial: {fileID: 2100000, guid: 7cd7c684a0042cf4fb0f83c08ef7a8b3, type: 2}
+  cellMaterial: {fileID: 2100000, guid: 0146f05f256de7c44a3df8ca434ba798, type: 2}
+  columns: 5
+  rows: 30
+  cellSize: 1
+  verticalSpeed:
+    minimumValue: 2
+    maximumValue: 16
+  verticalAcceleration: 0.01
+  playerPositionInMap: {x: 0, y: 0}
+  currentTargetPosition: {x: 0, y: 0}
+--- !u!114 &1809376914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809376911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d5c6e6985971099782e8a194d2c2010, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   groundObjectPrefabs:
   - {fileID: 2450038381516576170, guid: c09f5f53aa22fe549a2e6f1577b5a1c9, type: 3}
   groundHazardObjectPrefabs:
   - {fileID: 2450038381516576170, guid: fda52f9408af5dd48ab7097e33a0fa55, type: 3}
   hazardObjectPrefabs:
   - {fileID: 2450038381516576170, guid: 2b7d778bc521f68488bba691336434fc, type: 3}
-  columns: 5
-  rows: 30
-  cellSize: 1
-  verticalSpeed:
-    minimumValue: 1
-    maximumValue: 1
-  hazardProbability:
-    minimumValue: 0.1
-    maximumValue: 0.4
-  hazardInTheGroundProbability:
-    minimumValue: 0.1
-    maximumValue: 0.4
-  verticalAcceleration: 0.01
-  hazardProbabilityIncrementer: 0.00001
-  hazardInTheGroundProbabilityIncrementer: 0.00001
-  inputQueue: {fileID: 388180237}
-  targetCellMaterial: {fileID: 2100000, guid: 7cd7c684a0042cf4fb0f83c08ef7a8b3, type: 2}
-  cellMaterial: {fileID: 2100000, guid: 0146f05f256de7c44a3df8ca434ba798, type: 2}
   bonuses:
   - prefab: {fileID: 2450038381516576170, guid: fd05347ccd68c02419302cfd7274ab09,
       type: 3}
     probability: 0.01
-  playerPositionInMap: {x: 0, y: 0}
-  currentTargetPosition: {x: 0, y: 0}
+  hazardProbability:
+    minimumValue: 0.05
+    maximumValue: 0.4
+  hazardInTheGroundProbability:
+    minimumValue: 0.05
+    maximumValue: 0.4
+  hazardProbabilityIncrementer: 0.0001
+  hazardInTheGroundProbabilityIncrementer: 0.0001
 --- !u!1 &1818733845
 GameObject:
   m_ObjectHideFlags: 0

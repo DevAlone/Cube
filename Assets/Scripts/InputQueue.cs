@@ -84,7 +84,6 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
         {
             if (Input.GetKeyDown(pair.Key))
             {
-                /*
                 if (inputQueue.Count > 0)
                 {
                     var lastAction = inputQueue.Last.Value;
@@ -95,7 +94,6 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
                         continue;
                     }
                 }
-				*/
 
                 if (inputQueue.Count < maximumQueueSize)
                 {

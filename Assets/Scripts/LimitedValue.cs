@@ -9,8 +9,7 @@ public struct LimitedFloatValue
     public static LimitedFloatValue operator +(LimitedFloatValue left, float right)
     {
         var res = left;
-        dynamic v = right;
-        res._value += v;
+        res._value += right;
         res.Clamp();
 
         return res;
@@ -18,8 +17,7 @@ public struct LimitedFloatValue
     public static LimitedFloatValue operator -(LimitedFloatValue left, float right)
     {
         var res = left;
-        dynamic v = right;
-        res._value -= v;
+        res._value -= right;
         res.Clamp();
 
         return res;
