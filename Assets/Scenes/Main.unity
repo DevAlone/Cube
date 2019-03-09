@@ -1008,7 +1008,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   autoActivated: 0
-  pointsToActivate: 3
+  pointsToActivate: 10
   durationSeconds: 5
   speedModifier: 0.2
 --- !u!1 &789052888
@@ -1453,13 +1453,13 @@ MonoBehaviour:
   bonuses:
   - prefab: {fileID: 2450038381516576170, guid: fd05347ccd68c02419302cfd7274ab09,
       type: 3}
-    probability: 0.5
+    probability: 0.05
   - prefab: {fileID: 2450038381516576170, guid: fc27d072953454fb3b0d575a13ec89a8,
       type: 3}
     probability: 0.005
   - prefab: {fileID: 2450038381516576170, guid: bb9320db4976b0008b7c46a5222a70d7,
       type: 3}
-    probability: 0.1
+    probability: 0.15
   - prefab: {fileID: 8778232333080373778, guid: a76463e9162bd82d784ee4519b508f48,
       type: 3}
     probability: 0.001
