@@ -12,6 +12,7 @@ public enum InputAction
 
 public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
 {
+    public Field field;
     // minimum amount of pixels considered as swipe
     public float swipeThreshold;
     public uint maximumQueueSize;
@@ -134,12 +135,24 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
                 return;
             }
         }
-
-        if (inputQueue.Count < maximumQueueSize && action != InputAction.UndoSkipStep)
+        if (inputQueue.Count >= maximumQueueSize)
         {
-            inputQueue.AddLast(action);
-            onActionAdded?.Invoke(action);
+            return;
         }
+        if (action == InputAction.UndoSkipStep)
+        {
+            return;
+        }
+        // limit to field 
+        if (action == InputAction.MoveLeft && field.currentTargetPosition.x <= 0 ||
+            action == InputAction.MoveRight && field.currentTargetPosition.x >= field.columns - 1 ||
+            action == InputAction.SkipStep && field.currentTargetPosition.y >= field.rows - 1)
+        {
+            return;
+        }
+
+        inputQueue.AddLast(action);
+        onActionAdded?.Invoke(action);
     }
 
     bool AreActionsOpposite(InputAction action1, InputAction action2)

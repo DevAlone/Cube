@@ -113,5 +113,6 @@ public class PlayerController : MonoBehaviour
 
         gameController.IsGameOver = true;
         gameObject.SetActive(false);
+        isMovingHorizontally = false;
     }
 }

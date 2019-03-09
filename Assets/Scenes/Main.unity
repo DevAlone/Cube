@@ -463,6 +463,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf725118279007145b9c252dd649f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  field: {fileID: 1809376913}
   swipeThreshold: 30
   maximumQueueSize: 15
 --- !u!1 &517135620
