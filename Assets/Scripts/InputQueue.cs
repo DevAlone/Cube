@@ -11,6 +11,8 @@ public enum InputAction
 
 public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
 {
+    // minimum amount of pixels considered as swipe
+    public float swipeThreshold;
     public uint maximumQueueSize;
     public delegate void OnActionAdded(InputAction action);
     public delegate void OnLastActionRemoved(InputAction action);
@@ -24,6 +26,7 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
     private LinkedList<InputAction> inputQueue;
     private Dictionary<KeyCode, InputAction> keyInputActionMap;
     private Dictionary<InputAction, InputAction> oppositeActionsMap;
+    private Vector3 touchStartPosition;
 
     public bool IsEmpty()
     {
@@ -80,27 +83,68 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
         Debug.Log(queueString);
 		*/
 
+        // keyboard input
         foreach (var pair in keyInputActionMap)
         {
             if (Input.GetKeyDown(pair.Key))
             {
-                if (inputQueue.Count > 0)
-                {
-                    var lastAction = inputQueue.Last.Value;
-                    if (AreActionsOpposite(lastAction, pair.Value))
-                    {
-                        onLastActionRemoved?.Invoke(lastAction);
-                        inputQueue.RemoveLast();
-                        continue;
-                    }
-                }
-
-                if (inputQueue.Count < maximumQueueSize)
-                {
-                    inputQueue.AddLast(pair.Value);
-                    onActionAdded?.Invoke(pair.Value);
-                }
+                TryToPutAction(pair.Value);
             }
+        }
+
+        // sensor input
+        if (Input.touches.Length > 0)
+        {
+            var touch = Input.touches[0];
+            switch (touch.phase)
+            {
+                case TouchPhase.Began:
+                    touchStartPosition = touch.position;
+                    break;
+                case TouchPhase.Moved:
+                    break;
+                case TouchPhase.Ended:
+                    float horizontalLength = touch.position.x - touchStartPosition.x;
+                    // float verticalLength = touch.position.y - touchStartPosition.y;
+                    if (Mathf.Abs(horizontalLength) > swipeThreshold)
+                    {
+                        TryToPutAction(horizontalLength > 0 ?
+                                InputAction.MoveRight :
+                                InputAction.MoveLeft);
+                    }
+                    else
+                    {
+                        TryToPutAction(InputAction.SkipStep);
+                    }
+                    /*
+                    if (Mathf.Abs(touch.position.x - touchStartPosition.x) <= swipeThreshold)
+                    {
+                        TryToPutAction(InputAction.SkipStep);
+                    }
+                    touchStartPosition = touch.position;
+					*/
+                    break;
+            }
+        }
+    }
+
+    void TryToPutAction(InputAction action)
+    {
+        if (inputQueue.Count > 0)
+        {
+            var lastAction = inputQueue.Last.Value;
+            if (AreActionsOpposite(lastAction, action))
+            {
+                onLastActionRemoved?.Invoke(lastAction);
+                inputQueue.RemoveLast();
+                return;
+            }
+        }
+
+        if (inputQueue.Count < maximumQueueSize)
+        {
+            inputQueue.AddLast(action);
+            onActionAdded?.Invoke(action);
         }
     }
 
