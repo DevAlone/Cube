@@ -7,6 +7,7 @@ public enum InputAction
     MoveLeft,
     MoveRight,
     SkipStep,
+    UndoSkipStep,
 }
 
 public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
@@ -40,6 +41,15 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
         return item;
     }
 
+    public void Clear()
+    {
+        // inputQueue.Clear();
+        while (inputQueue.Count > 0)
+        {
+            inputQueue.RemoveFirst();
+        }
+    }
+
     private InputAction Peek()
     {
         return inputQueue.First.Value;
@@ -53,36 +63,19 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
             { KeyCode.LeftArrow, InputAction.MoveLeft },
             { KeyCode.RightArrow, InputAction.MoveRight },
             { KeyCode.UpArrow, InputAction.SkipStep },
+            { KeyCode.DownArrow, InputAction.UndoSkipStep },
         };
         oppositeActionsMap = new Dictionary<InputAction, InputAction>
         {
             { InputAction.MoveLeft, InputAction.MoveRight },
             { InputAction.MoveRight, InputAction.MoveLeft },
+            { InputAction.UndoSkipStep, InputAction.SkipStep},
+            { InputAction.SkipStep, InputAction.UndoSkipStep},
         };
     }
 
     void Update()
     {
-        /*
-        var queueString = inputQueue.Count.ToString() + ": ";
-        foreach (var item in inputQueue)
-        {
-            switch (item)
-            {
-                case InputAction.MoveLeft:
-                    queueString += "<";
-                    break;
-                case InputAction.MoveRight:
-                    queueString += ">";
-                    break;
-                case InputAction.SkipStep:
-                    queueString += "|";
-                    break;
-            }
-        }
-        Debug.Log(queueString);
-		*/
-
         // keyboard input
         foreach (var pair in keyInputActionMap)
         {
@@ -101,28 +94,29 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
                 case TouchPhase.Began:
                     touchStartPosition = touch.position;
                     break;
-                case TouchPhase.Moved:
-                    break;
                 case TouchPhase.Ended:
                     float horizontalLength = touch.position.x - touchStartPosition.x;
-                    // float verticalLength = touch.position.y - touchStartPosition.y;
+                    float verticalLength = touch.position.y - touchStartPosition.y;
+                    bool swipeDetected = false;
+
+                    if (Mathf.Abs(verticalLength) > swipeThreshold)
+                    {
+                        swipeDetected = true;
+                        TryToPutAction(verticalLength > 0 ?
+                                InputAction.SkipStep :
+                                InputAction.UndoSkipStep);
+                    }
                     if (Mathf.Abs(horizontalLength) > swipeThreshold)
                     {
+                        swipeDetected = true;
                         TryToPutAction(horizontalLength > 0 ?
                                 InputAction.MoveRight :
                                 InputAction.MoveLeft);
                     }
-                    else
+                    if (!swipeDetected)
                     {
                         TryToPutAction(InputAction.SkipStep);
                     }
-                    /*
-                    if (Mathf.Abs(touch.position.x - touchStartPosition.x) <= swipeThreshold)
-                    {
-                        TryToPutAction(InputAction.SkipStep);
-                    }
-                    touchStartPosition = touch.position;
-					*/
                     break;
             }
         }
@@ -141,7 +135,7 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
             }
         }
 
-        if (inputQueue.Count < maximumQueueSize)
+        if (inputQueue.Count < maximumQueueSize && action != InputAction.UndoSkipStep)
         {
             inputQueue.AddLast(action);
             onActionAdded?.Invoke(action);

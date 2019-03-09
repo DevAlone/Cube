@@ -18,6 +18,7 @@ public class GameController : MonoBehaviour
             isGameOver = value;
             if (isGameOver)
             {
+                inputQueue.Clear();
                 endTextWidget.text = endTextWidget.text.Replace("$score", score.ToString());
             }
             endGameUI.SetActive(isGameOver);
@@ -122,12 +123,6 @@ public class GameController : MonoBehaviour
 
     void Update()
     {
-        if (isGameOver)
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            return;
-        }
-
         if (isProcessingInputQueue)
         {
             ProcessInputQueue();
@@ -155,6 +150,12 @@ public class GameController : MonoBehaviour
             }
             else
             {
+                if (isGameOver)
+                {
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                    return;
+                }
+
                 switch (inputQueue.Dequeue())
                 {
                     case InputAction.MoveLeft:
