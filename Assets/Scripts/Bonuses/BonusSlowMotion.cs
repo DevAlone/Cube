@@ -1,23 +1,11 @@
-﻿using UnityEngine;
-
-public class BonusSlowMotion : BonusBase
+﻿public class BonusSlowMotion : BonusChangeSpeed
 {
-    public float speedModifier;
-    private GameController gameController;
-    private PlayerController playerController;
+    public int abilityPointsIncrementer = 1;
 
     public override void ApplyBonus()
     {
-        if (gameController == null)
-        {
-            gameController = GameController.GetCurrent();
-        }
-        if (playerController == null)
-        {
-            playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
-        }
-
-        gameController.field.verticalSpeed -= speedModifier;
-        playerController.HorizontalSpeed -= speedModifier;
+        base.ApplyBonus();
+        var slowMoAbility = gameController.GetComponent<SlowMotionAbility>();
+        slowMoAbility.Points += abilityPointsIncrementer;
     }
 }

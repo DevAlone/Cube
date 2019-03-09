@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [System.Serializable]
-public class BonusEntry
+public struct BonusEntry
 {
     public GameObject prefab;
     public float probability;

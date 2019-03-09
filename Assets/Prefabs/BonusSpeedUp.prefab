@@ -10,10 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 2450038381516576174}
   - component: {fileID: 4371772691089910508}
-  - component: {fileID: 153345883322173002}
   - component: {fileID: 7874096148278852470}
+  - component: {fileID: 498088113288929995}
   m_Layer: 0
-  m_Name: BonusSlowMotion
+  m_Name: BonusSpeedUp
   m_TagString: Bonus
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47,20 +47,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.8, y: 1, z: 0.8}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &153345883322173002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2450038381516576170}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4de728ca41dec494985d56beff9a2c70, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  visualObject: {fileID: 2538848633298574661}
-  speedModifier: -1
 --- !u!114 &7874096148278852470
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -76,6 +62,20 @@ MonoBehaviour:
   xRotationSpeed: 0
   yRotationSpeed: 20
   zRotationSpeed: 0
+--- !u!114 &498088113288929995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2450038381516576170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d503586a2ee4e8a691f91ea65d865c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualObject: {fileID: 2538848633298574661}
+  speedModifier: 1
 --- !u!1 &2538848633298574661
 GameObject:
   m_ObjectHideFlags: 0
@@ -134,7 +134,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 5b91654a6bb0ec946948e1fe1e9e6efe, type: 2}
+  - {fileID: 2100000, guid: 40c63f6f8addc3d78af70560e902205b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
