@@ -20,33 +20,40 @@ public class FieldGenerator : MonoBehaviour
             bool spawnHazards = true
     )
     {
-        var paths = field.FindPathsToRow(rowNumber, field.playerPositionInMap, new HashSet<Vector2Int>());
-
-        var skipIndex = paths.Count > 0 ? paths[Random.Range(0, paths.Count)] : -1;
-
-        if (skipIndex >= 0)
+        var skipIndex = -1;
+        if (spawnHazards)
         {
-            var position = shiftPosition + new Vector3(
-                skipIndex * field.cellSize,
-                0,
-                0
-            );
-            var prefab = groundObjectPrefabs[Random.Range(0, groundObjectPrefabs.Length)];
-            var groundObj = Instantiate(
-                prefab,
-                position,
-                transform.rotation
-            );
-            groundObj.transform.parent = transform;
-            if (field.objectsMap[0][rowNumber][skipIndex] != null)
+            var paths = field.FindEntriesToRow(rowNumber, field.playerPositionInMap, new HashSet<Vector2Int>());
+            if (paths.Count > 0)
             {
-                throw new System.Exception("trying to override an existing object");
+                var randomEntry = paths[Random.Range(0, paths.Count)];
+                skipIndex = randomEntry;
             }
-            field.objectsMap[0][rowNumber][skipIndex] = groundObj;
-        }
-        else
-        {
-            Debug.Log("Unable to find path");
+
+            if (skipIndex >= 0)
+            {
+                var position = shiftPosition + new Vector3(
+                    skipIndex * field.cellSize,
+                    0,
+                    0
+                );
+                var prefab = groundObjectPrefabs[Random.Range(0, groundObjectPrefabs.Length)];
+                var groundObj = Instantiate(
+                    prefab,
+                    position,
+                    transform.rotation
+                );
+                groundObj.transform.parent = transform;
+                if (field.objectsMap[0][rowNumber][skipIndex] != null)
+                {
+                    throw new System.Exception("trying to override an existing object");
+                }
+                field.objectsMap[0][rowNumber][skipIndex] = groundObj;
+            }
+            else
+            {
+                Debug.Log("Unable to find path");
+            }
         }
 
         for (int i = 0; i < field.columns; ++i)

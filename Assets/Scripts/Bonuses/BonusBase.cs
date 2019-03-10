@@ -8,7 +8,7 @@ public abstract class BonusBase : MonoBehaviour
 
     protected GameController gameController;
 
-    private void Start()
+    protected virtual void Start()
     {
         gameController = GameController.GetCurrent();
     }

@@ -124,7 +124,7 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
         }
     }
 
-    void TryToPutAction(InputAction action)
+    public void TryToPutAction(InputAction action)
     {
         if (inputQueue.Count > 0)
         {

@@ -138,7 +138,108 @@ public class Field : MonoBehaviour
         }
     }
 
-    public List<int> FindPathsToRow(int rowIndex, Vector2Int playerPosition, HashSet<Vector2Int> visitedIndices)
+    // Does BFS search to find any path to row with an index rowIndex
+    public List<Vector2Int> FindPathToRow(Vector2Int startPosition, int targetRowIndex)
+    {
+        var path = new List<Vector2Int>();
+        _FindPathToRow(startPosition, targetRowIndex, path, new HashSet<Vector2Int>());
+        path.Reverse();
+        return path;
+    }
+
+    // is it a good idea to move to this cell
+    private bool isCellWalkable(Vector2Int position)
+    {
+        // skip ones that are out of the array
+        if (position.x < 0 || position.x >= columns || position.y < 0 || position.y >= rows)
+        {
+            return false;
+        }
+        var groundObj = objectsMap[0][position.y][position.x];
+        // skip holes in the ground
+        if (groundObj == null)
+        {
+            return false;
+        }
+        // skip hazards in the ground
+        if (groundObj.tag == "Hazard")
+        {
+            return false;
+        }
+        // skip hazards above the ground
+        var obj = objectsMap[1][position.y][position.x];
+        if (obj != null && obj.tag == "Hazard")
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool _FindPathToRow(Vector2Int currentPosition, int targetRowIndex, List<Vector2Int> path, HashSet<Vector2Int> visitedNodes)
+    {
+        if (currentPosition.y == targetRowIndex)
+        {
+            // found some path
+            return true;
+        }
+
+        if (visitedNodes.Contains(currentPosition))
+        {
+            return false;
+        }
+        visitedNodes.Add(currentPosition);
+
+        if (!isCellWalkable(currentPosition))
+        {
+            return false;
+        }
+
+        if (_FindPathToRow(
+            new Vector2Int(currentPosition.x, currentPosition.y + 1),
+            targetRowIndex,
+            path,
+            visitedNodes
+        ))
+        {
+            path.Add(currentPosition);
+            return true;
+        }
+        if (_FindPathToRow(
+            new Vector2Int(currentPosition.x - 1, currentPosition.y),
+            targetRowIndex,
+            path,
+            visitedNodes
+        ))
+        {
+            path.Add(currentPosition);
+            return true;
+        }
+        if (_FindPathToRow(
+           new Vector2Int(currentPosition.x + 1, currentPosition.y),
+           targetRowIndex,
+           path,
+           visitedNodes
+       ))
+        {
+            path.Add(currentPosition);
+            return true;
+        }
+        if (_FindPathToRow(
+            new Vector2Int(currentPosition.x, currentPosition.y - 1),
+            targetRowIndex,
+            path,
+            visitedNodes
+        ))
+        {
+            path.Add(currentPosition);
+            return true;
+        }
+
+        return false;
+    }
+
+    public List<int> FindEntriesToRow(int rowIndex, Vector2Int playerPosition, HashSet<Vector2Int> visitedIndices)
     {
         if (visitedIndices.Contains(playerPosition))
         {
@@ -158,30 +259,16 @@ public class Field : MonoBehaviour
             };
         }
 
-        // skip holes in the ground
-        if (objectsMap[0][playerPosition.y][playerPosition.x] == null)
-        {
-            return new List<int>();
-        }
-
-        // skip hazards in the ground
-        if (objectsMap[0][playerPosition.y][playerPosition.x].tag == "Hazard")
-        {
-            return new List<int>();
-        }
-
-        // skip hazards above the ground
-        if (objectsMap[1][playerPosition.y][playerPosition.x] != null &&
-            objectsMap[1][playerPosition.y][playerPosition.x].tag == "Hazard")
+        if (!isCellWalkable(playerPosition))
         {
             return new List<int>();
         }
 
         var result = new List<int>();
 
-        result.AddRange(FindPathsToRow(rowIndex, new Vector2Int(playerPosition.x - 1, playerPosition.y), visitedIndices));
-        result.AddRange(FindPathsToRow(rowIndex, new Vector2Int(playerPosition.x + 1, playerPosition.y), visitedIndices));
-        result.AddRange(FindPathsToRow(rowIndex, new Vector2Int(playerPosition.x, playerPosition.y + 1), visitedIndices));
+        result.AddRange(FindEntriesToRow(rowIndex, new Vector2Int(playerPosition.x - 1, playerPosition.y), visitedIndices));
+        result.AddRange(FindEntriesToRow(rowIndex, new Vector2Int(playerPosition.x + 1, playerPosition.y), visitedIndices));
+        result.AddRange(FindEntriesToRow(rowIndex, new Vector2Int(playerPosition.x, playerPosition.y + 1), visitedIndices));
 
         return result;
     }
@@ -210,43 +297,6 @@ public class Field : MonoBehaviour
             (int)((player.transform.position.x + columns * cellSize / 2) / cellSize),
             (int)((player.transform.position.z - fieldStartPosition) / cellSize)
         );
-    }
-
-    public void DrawPath()
-    {
-        UpdatePlayerPosition();
-        for (int z = 0; z < rows && z < inputQueue.Size; ++z)
-        {
-            for (int x = 0; x < columns; ++x)
-            {
-                UnmarkCellAsTarget(new Vector2Int(x, z));
-            }
-        }
-
-        // draw path
-        MarkCellAsTarget(playerPositionInMap);
-        currentTargetPosition = playerPositionInMap;
-        foreach (var action in inputQueue)
-        {
-            switch (action)
-            {
-                case InputAction.MoveLeft:
-                    currentTargetPosition.x -= 1;
-                    break;
-                case InputAction.MoveRight:
-                    currentTargetPosition.x += 1;
-                    break;
-                case InputAction.SkipStep:
-                    currentTargetPosition.y += 1;
-                    break;
-            }
-            MarkCellAsTarget(currentTargetPosition);
-        }
-        if (inputQueue.Size <= 0)
-        {
-            currentTargetPosition.y += 1;
-            MarkCellAsTarget(currentTargetPosition);
-        }
     }
 
     void Start()
