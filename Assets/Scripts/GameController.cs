@@ -123,20 +123,31 @@ public class GameController : MonoBehaviour
 
     void Update()
     {
-        if (isProcessingInputQueue)
+        if (isGameOver)
         {
-            ProcessInputQueue();
-            if (!isProcessingInputQueue && inputQueue.IsEmpty())
+            if (!inputQueue.IsEmpty())
             {
-                // mark next cell if we're moving not by player's input but automatically
-                field.currentTargetPosition = field.playerPositionInMap;
-                field.currentTargetPosition.y += 1;
-                field.MarkCellAsTarget(field.currentTargetPosition);
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                return;
             }
         }
         else
         {
-            field.Move(Time.deltaTime);
+            if (isProcessingInputQueue)
+            {
+                ProcessInputQueue();
+                if (!isProcessingInputQueue && inputQueue.IsEmpty())
+                {
+                    // mark next cell if we're moving not by player's input but automatically
+                    field.currentTargetPosition = field.playerPositionInMap;
+                    field.currentTargetPosition.y += 1;
+                    field.MarkCellAsTarget(field.currentTargetPosition);
+                }
+            }
+            else
+            {
+                field.Move(Time.deltaTime);
+            }
         }
     }
 
@@ -150,12 +161,6 @@ public class GameController : MonoBehaviour
             }
             else
             {
-                if (isGameOver)
-                {
-                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-                    return;
-                }
-
                 switch (inputQueue.Dequeue())
                 {
                     case InputAction.MoveLeft:

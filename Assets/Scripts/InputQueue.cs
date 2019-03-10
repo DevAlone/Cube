@@ -14,7 +14,8 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
 {
     public Field field;
     // minimum amount of pixels considered as swipe
-    public float swipeThreshold;
+    public float swipeHorizontalThreshold;
+    public float swipeVerticalThreshold;
     public uint maximumQueueSize;
     public delegate void OnActionAdded(InputAction action);
     public delegate void OnLastActionRemoved(InputAction action);
@@ -100,14 +101,14 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
                     float verticalLength = touch.position.y - touchStartPosition.y;
                     bool swipeDetected = false;
 
-                    if (Mathf.Abs(verticalLength) > swipeThreshold)
+                    if (Mathf.Abs(verticalLength) > swipeVerticalThreshold)
                     {
                         swipeDetected = true;
                         TryToPutAction(verticalLength > 0 ?
                                 InputAction.SkipStep :
                                 InputAction.UndoSkipStep);
                     }
-                    if (Mathf.Abs(horizontalLength) > swipeThreshold)
+                    if (Mathf.Abs(horizontalLength) > swipeHorizontalThreshold)
                     {
                         swipeDetected = true;
                         TryToPutAction(horizontalLength > 0 ?

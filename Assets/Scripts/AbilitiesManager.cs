@@ -4,24 +4,35 @@ using UnityEngine.UI;
 public class AbilitiesManager : MonoBehaviour
 {
     public Button activateSlowMoAbilityButton;
+    public Button activateSpeedUpAbilityButton;
 
     private GameController gameController;
-    private SlowMotionAbility SlowMoAbility;
+    private SlowMotionAbility slowMoAbility;
+    private SpeedUpAbility speedUpAbility;
 
     void Start()
     {
         gameController = GameController.GetCurrent();
-        SlowMoAbility = gameController.GetComponent<SlowMotionAbility>();
+        slowMoAbility = gameController.GetComponent<SlowMotionAbility>();
+        speedUpAbility = gameController.GetComponent<SpeedUpAbility>();
         activateSlowMoAbilityButton.onClick.AddListener(() =>
         {
-            SlowMoAbility.TryToActivate();
+            slowMoAbility.TryToActivate();
+        });
+
+        activateSpeedUpAbilityButton.onClick.AddListener(() =>
+        {
+            speedUpAbility.TryToActivate();
         });
     }
 
     void Update()
     {
         activateSlowMoAbilityButton.gameObject.SetActive(
-            SlowMoAbility.CanBeActivated
+            slowMoAbility.CanBeActivated
+        );
+        activateSpeedUpAbilityButton.gameObject.SetActive(
+            speedUpAbility.CanBeActivated
         );
     }
 }

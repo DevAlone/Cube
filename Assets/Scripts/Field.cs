@@ -12,8 +12,8 @@ public class Field : MonoBehaviour
 {
     public GameObject player;
     public InputQueue inputQueue;
-    public Material targetCellMaterial;
-    public Material cellMaterial;
+    // value from 0.0f to 1.0f
+    public float targetCellBrightness;
 
     // number of cells in the field
     public int columns, rows;
@@ -100,11 +100,16 @@ public class Field : MonoBehaviour
 
         if (groundObj != null)
         {
-            groundObj.
+            var mt = groundObj.
                 GetComponent<ActualObjectHolder>().
                 actualObject.
                 GetComponent<MeshRenderer>().
-                material = targetCellMaterial;
+                material;  // = targetCellMaterial;
+            var color = mt.color;
+            color.r += targetCellBrightness;
+            color.g += targetCellBrightness;
+            color.b += targetCellBrightness;
+            mt.color = color;
         }
     }
 
@@ -120,11 +125,16 @@ public class Field : MonoBehaviour
 
         if (groundObj != null)
         {
-            groundObj.
+            var mt = groundObj.
                 GetComponent<ActualObjectHolder>().
                 actualObject.
                 GetComponent<MeshRenderer>().
-                material = cellMaterial;
+                material;  // = targetCellMaterial;
+            var color = mt.color;
+            color.r -= targetCellBrightness;
+            color.g -= targetCellBrightness;
+            color.b -= targetCellBrightness;
+            mt.color = color;
         }
     }
 

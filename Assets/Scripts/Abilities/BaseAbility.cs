@@ -3,29 +3,23 @@ using UnityEngine;
 
 public abstract class BaseAbility : MonoBehaviour
 {
-    public bool autoActivated = true;
     public int pointsToActivate;
-    public int durationSeconds;
     public int Points
     {
         get { return _points; }
         set
         {
             _points += value;
-            if (autoActivated)
-            {
-                TryToActivate();
-            }
         }
     }
-    public bool CanBeActivated
+    public virtual bool CanBeActivated
     {
         get { return _points >= pointsToActivate; }
     }
 
     public void TryToActivate()
     {
-        if (_points >= pointsToActivate)
+        if (CanBeActivated)
         {
             StartCoroutine(Activate());
             _points = 0;
@@ -36,7 +30,7 @@ public abstract class BaseAbility : MonoBehaviour
     protected GameController gameController;
     private int _points;
 
-    private void Start()
+    protected virtual void Start()
     {
         gameController = GameController.GetCurrent();
     }

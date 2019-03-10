@@ -4,6 +4,7 @@ using UnityEngine;
 public class SlowMotionAbility : BaseAbility
 {
     public float speedModifier;
+    public int durationSeconds;
 
     protected override IEnumerator Activate()
     {
