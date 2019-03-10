@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class GameController : MonoBehaviour
 {
     public Text scoreValueWidget;
+    public Text bestScoreValueWidget;
     public Text endTextWidget;
     public int scorePerRow;
     public int scorePerHorizontalMove;
@@ -20,6 +21,11 @@ public class GameController : MonoBehaviour
             {
                 inputQueue.Clear();
                 endTextWidget.text = endTextWidget.text.Replace("$score", score.ToString());
+                if (score > PlayerPrefs.GetInt("BestScore", 0))
+                {
+                    PlayerPrefs.SetInt("BestScore", score);
+                }
+                updateBestScore();
             }
             endGameUI.SetActive(isGameOver);
         }
@@ -113,6 +119,7 @@ public class GameController : MonoBehaviour
                     break;
             }
         };
+        updateBestScore();
     }
 
     void MovePlayer(float shift)
@@ -176,5 +183,11 @@ public class GameController : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void updateBestScore()
+    {
+        var bestScore = PlayerPrefs.GetInt("BestScore", 0);
+        bestScoreValueWidget.text = "best " + bestScore;
     }
 }
