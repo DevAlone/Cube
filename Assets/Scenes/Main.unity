@@ -1211,7 +1211,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointsToActivate: 7
   speedModifier: 3
-  pointsToDeactivate: 3
+  pointsToDeactivate: 5
 --- !u!114 &671635957
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2168,6 +2168,9 @@ MonoBehaviour:
     maximumValue: 0.2
   hazardProbabilityIncrementer: 0.0005
   hazardInTheGroundProbabilityIncrementer: 0.0001
+  waveLength: 1.5
+  waveAmplitude: 0.1
+  bonusWaveAmplitude: 0.05
 --- !u!1 &1818733845
 GameObject:
   m_ObjectHideFlags: 0

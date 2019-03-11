@@ -12,6 +12,12 @@ public class FieldGenerator : MonoBehaviour
     // per row
     public float hazardProbabilityIncrementer;
     public float hazardInTheGroundProbabilityIncrementer;
+    // in rows
+    public float waveLength = 2.5f;
+    public float waveAmplitude = 0.15f;
+    public float bonusWaveAmplitude = 0.075f;
+
+    private uint rowCounter = 0;
 
     public void CreateRow(
             Field field,
@@ -20,6 +26,7 @@ public class FieldGenerator : MonoBehaviour
             bool spawnHazards = true
     )
     {
+        rowCounter += 1;
         var skipIndex = -1;
         if (spawnHazards)
         {
@@ -70,7 +77,7 @@ public class FieldGenerator : MonoBehaviour
             );
 
             var prefab = groundObjectPrefabs[Random.Range(0, groundObjectPrefabs.Length)];
-            if (spawnHazards && groundHazardObjectPrefabs.Length > 0 && Random.value < hazardInTheGroundProbability)
+            if (spawnHazards && groundHazardObjectPrefabs.Length > 0 && Random.value < wrapProbabilityWithWave(hazardInTheGroundProbability))
             {
                 prefab = groundHazardObjectPrefabs[Random.Range(0, groundHazardObjectPrefabs.Length)];
             }
@@ -87,7 +94,7 @@ public class FieldGenerator : MonoBehaviour
             }
             field.objectsMap[0][rowNumber][i] = groundObj;
 
-            if (spawnHazards && Random.value < hazardProbability)
+            if (spawnHazards && Random.value < wrapProbabilityWithWave(hazardProbability))
             {
                 var hazardPrefab = hazardObjectPrefabs[Random.Range(0, hazardObjectPrefabs.Length)];
                 var hazard = Instantiate(
@@ -108,7 +115,7 @@ public class FieldGenerator : MonoBehaviour
                 if (bonuses.Length > 0)
                 {
                     var randomBonusEntry = bonuses[Random.Range(0, bonuses.Length)];
-                    if (Random.value < randomBonusEntry.probability)
+                    if (Random.value < wrapBonusProbabilityWithWave(randomBonusEntry.probability))
                     {
                         var bonus = Instantiate(
                             randomBonusEntry.prefab,
@@ -128,5 +135,29 @@ public class FieldGenerator : MonoBehaviour
         }
 
         field.onRowCreated?.Invoke();
+    }
+
+    private LimitedFloatValue wrapProbabilityWithWave(LimitedFloatValue probability)
+    {
+        probability += Mathf.Sin((float)rowCounter / (2.0f * Mathf.PI) / waveLength) * waveAmplitude;
+
+        return probability;
+    }
+
+    // shifted 
+    private float wrapBonusProbabilityWithWave(float probability)
+    {
+        float shift = 2.0f * Mathf.PI / waveLength;
+        probability += Mathf.Sin(shift + (float)rowCounter / (2.0f * Mathf.PI) / waveLength) * bonusWaveAmplitude;
+        if (probability < 0)
+        {
+            probability = 0;
+        }
+        else if (probability > 1)
+        {
+            probability = 1;
+        }
+
+        return probability;
     }
 }
