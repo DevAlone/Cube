@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public enum InputAction
 {
@@ -10,7 +11,7 @@ public enum InputAction
     UndoSkipStep,
 }
 
-public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
+public class InputQueue : MonoBehaviour, IEnumerable<InputAction>, IPointerDownHandler, IPointerUpHandler
 {
     public Field field;
     // minimum amount of pixels considered as swipe
@@ -30,6 +31,8 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
     private Dictionary<KeyCode, InputAction> keyInputActionMap;
     private Dictionary<InputAction, InputAction> oppositeActionsMap;
     private Vector3 touchStartPosition;
+    private bool touched = false;
+    private int pointerId;
 
     public bool IsEmpty()
     {
@@ -88,6 +91,7 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
         }
 
         // sensor input
+        /*
         if (Input.touches.Length > 0)
         {
             var touch = Input.touches[0];
@@ -120,6 +124,47 @@ public class InputQueue : MonoBehaviour, IEnumerable<InputAction>
                         TryToPutAction(InputAction.SkipStep);
                     }
                     break;
+            }
+        }
+		*/
+    }
+
+    public void OnPointerDown(PointerEventData data)
+    {
+        if (!touched)
+        {
+            touched = true;
+            pointerId = data.pointerId;
+            touchStartPosition = data.position;
+        }
+    }
+
+    public void OnPointerUp(PointerEventData data)
+    {
+        if (data.pointerId == pointerId)
+        {
+            touched = false;
+            float horizontalLength = data.position.x - touchStartPosition.x;
+            float verticalLength = data.position.y - touchStartPosition.y;
+            bool swipeDetected = false;
+
+            if (Mathf.Abs(verticalLength) > swipeVerticalThreshold)
+            {
+                swipeDetected = true;
+                TryToPutAction(verticalLength > 0 ?
+                        InputAction.SkipStep :
+                        InputAction.UndoSkipStep);
+            }
+            if (Mathf.Abs(horizontalLength) > swipeHorizontalThreshold)
+            {
+                swipeDetected = true;
+                TryToPutAction(horizontalLength > 0 ?
+                        InputAction.MoveRight :
+                        InputAction.MoveLeft);
+            }
+            if (!swipeDetected)
+            {
+                TryToPutAction(InputAction.SkipStep);
             }
         }
     }
