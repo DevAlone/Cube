@@ -6,6 +6,7 @@ public class GameController : MonoBehaviour
 {
     public Text scoreValueWidget;
     public Text bestScoreValueWidget;
+    public Text lastScoreValueWidget;
     public Text endTextWidget;
     public int scorePerRow;
     public int scorePerHorizontalMove;
@@ -25,7 +26,8 @@ public class GameController : MonoBehaviour
                 {
                     PlayerPrefs.SetInt("BestScore", score);
                 }
-                updateBestScore();
+                PlayerPrefs.SetInt("LastScore", score);
+                updateBestAndLastScore();
             }
             endGameUI.SetActive(isGameOver);
         }
@@ -119,7 +121,7 @@ public class GameController : MonoBehaviour
                     break;
             }
         };
-        updateBestScore();
+        updateBestAndLastScore();
     }
 
     void MovePlayer(float shift)
@@ -185,9 +187,12 @@ public class GameController : MonoBehaviour
         }
     }
 
-    private void updateBestScore()
+    private void updateBestAndLastScore()
     {
         var bestScore = PlayerPrefs.GetInt("BestScore", 0);
         bestScoreValueWidget.text = "best " + bestScore;
+
+        var lastScore = PlayerPrefs.GetInt("LastScore", 0);
+        lastScoreValueWidget.text = "last " + lastScore;
     }
 }
