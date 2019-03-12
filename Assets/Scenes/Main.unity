@@ -412,6 +412,7 @@ GameObject:
   - component: {fileID: 234718773}
   - component: {fileID: 234718775}
   - component: {fileID: 234718774}
+  - component: {fileID: 234718776}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -475,6 +476,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 234718772}
   m_CullTransparentMesh: 0
+--- !u!114 &234718776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 234718772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0002c9960d9d1576897b6455f8aa26e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &235369180
 GameObject:
   m_ObjectHideFlags: 0
@@ -659,7 +672,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -1381,6 +1394,7 @@ GameObject:
   - component: {fileID: 890979869}
   - component: {fileID: 890979871}
   - component: {fileID: 890979870}
+  - component: {fileID: 890979872}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -1449,6 +1463,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 890979868}
   m_CullTransparentMesh: 0
+--- !u!114 &890979872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890979868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0002c9960d9d1576897b6455f8aa26e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &918868761
 GameObject:
   m_ObjectHideFlags: 0
