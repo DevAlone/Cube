@@ -2,7 +2,7 @@
 
 Mobile runner where everything is a cube.
 
-Try it out here on Google Play https://play.google.com/store/apps/details?id=info.d3d.Cube
+Try it out here on Google Play --> https://play.google.com/store/apps/details?id=info.d3d.Cube
 
 ![screenshot of gameplay](https://raw.githubusercontent.com/DevAlone/Cube/master/screenshots/1.png)
 ![screenshot of gameplay](https://raw.githubusercontent.com/DevAlone/Cube/master/screenshots/2.png)
