@@ -14,9 +14,9 @@ It has a random generated field with a pathfinding algorithm to make game solvab
 
 There are 3 kind of bonuses which activate unique abilities:
 
-- Blue - reduces current player's speed. When you collect 10 blue bonuses, SlowMo ability can be activated which allows you to make game slower for 5 seconds.
-- Yellow - adds score. When you collect 15 such bonuses, you'll be given an ability to let the game play for you by drawing path for your cube to the end of the field.
-- Pink - increases current player's speed.
+- Blue - reduces current player's speed. When you collect 10 blue bonuses, SlowMo ability can be activated which allows you to make game way slower for 5 seconds.
+- Yellow - adds some score. When you collect 15 such bonuses, you'll be given an ability to let the game play for you by drawing path for your cube to the end of the field.
+- Pink - just increases current player's speed.
 
 And also there is a SpeedUp ability for those of you who want to play faster, it's auto deactivated when number of actions in queue becomes lower than 5.
 
